@@ -1,5 +1,5 @@
 import Phaser from "phaser";
-import { Action, Pieces, Game } from '../game';
+import { Action, Game } from '../game';
 
 interface xy<T> {
     x: T,
@@ -75,16 +75,16 @@ export class MosaicScene extends Phaser.Scene {
         const { x, y } = this.stonePosition(action);
         const hole = this.add.circle(x, y, 18, this.colors['hole']).setInteractive();
         hole.on('pointerdown', () => {
-            this.mosaicGame.next(action)
+            this.mosaicGame.next(action);
             hole.destroy();
-            console.log(hole.x, hole.y);
+            console.log('click', hole.x, hole.y);
         });
     }
 
     private stoneCircle(action: Action, player: number) {
         const { x, y } = this.stonePosition(action);
         const color: string = `stone${player}`
-        console.log(color);
+        console.log(x, y, color);
         this.add.circle(x, y, 50, this.colors['rim']);
         this.add.circle(x, y, 45, this.colors[color]);
     }

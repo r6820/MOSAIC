@@ -47,7 +47,7 @@ export class Pieces extends Array<Array<Array<number>>>{
 
     public countBelow(conditionfn: (v: number) => number): Pieces {
         return this.piecesMap((_, i, j, k) =>
-            i == this.size - 1 ? 4 :
+            i == this.size - 1 ? 0 :
                 conditionfn(this[i + 1][j][k])
                 + conditionfn(this[i + 1][j + 1][k])
                 + conditionfn(this[i + 1][j][k + 1])
@@ -55,10 +55,10 @@ export class Pieces extends Array<Array<Array<number>>>{
         )
     }
 
-    public where(conditionfn: (v: number) => boolean): Action[] {
+    public where(conditionfn: (value: number, i: number, j: number, k: number) => boolean): Action[] {
         const arr: Action[] = []
         this.piecesForEach((v, i, j, k) => {
-            if (conditionfn(v)) {
+            if (conditionfn(v, i, j, k)) {
                 arr.push(new Action(i, j, k))
             }
         })
@@ -97,14 +97,14 @@ export class Game {
         })
     }
 
-    private isDone(): boolean {
-        return false
-    }
+    // private isDone(): boolean {
+    //     return false
+    // }
 
     public legalPieces(): Pieces {
         const below = this.pieces.countBelow(v => Number(v != 0));
         return this.pieces.piecesMap(
-            (v, i, j, k) => Number(v == 0 && below[i][j][k] == 4)
+            (v, i, j, k) => Number(i == this.size - 1 || (v == 0 && below[i][j][k] == 4))
         )
     }
 
@@ -114,14 +114,31 @@ export class Game {
 
     public next(action: Action): void {
         const _legalPieces = this.legalPieces();
-        this.pieces.setItem(action, this.player);
-        this.player *= -1;
-        this.scene.place.push({ action: action, player: this.player });
+        this.placeStone(action, this.player);
+        let fp: Action[] = [];
+        let sp: Action[] = [];
+        do {
+            const lp = this.legalPieces();
+            fp = this.pieces.countBelow(v => Number(v == 1)).where((v, i, j, k) => lp[i][j][k] == 1 && v >= 3);
+            sp = this.pieces.countBelow(v => Number(v == -1)).where((v, i, j, k) => lp[i][j][k] == 1 && v >= 3);
+            console.log(fp, sp);
+
+            fp.forEach(a => this.placeStone(a, 1))
+            sp.forEach(a => this.placeStone(a, -1))
+        } while (fp.length + sp.length > 0)
+
         const legalPieces = this.legalPieces();
         legalPieces.piecesForEach((v, i, j, k) => {
             if (v == 1 && _legalPieces[i][j][k] == 0) {
                 this.scene.placeable.push(new Action(i, j, k))
             }
         });
+        this.player *= -1;
+    }
+
+    private placeStone(action: Action, player: number) {
+        console.log('place', action);
+        this.pieces.setItem(action, player);
+        this.scene.place.push({ action: action, player: player });
     }
 }
