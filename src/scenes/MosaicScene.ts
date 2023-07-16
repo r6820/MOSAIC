@@ -38,10 +38,11 @@ export class MosaicScene extends Phaser.Scene {
     public mosaicGame: Game;
     public place: { action: Action, player: number }[] = [];
     public placeable: Action[] = [];
+    public pointText!: Phaser.GameObjects.Text;
 
     constructor() {
         super({ key: 'myscene', active: true });
-        this.mosaicGame = new Game(this)
+        this.mosaicGame = new Game(this);
     }
 
     preload() {
@@ -55,6 +56,7 @@ export class MosaicScene extends Phaser.Scene {
         this.cameras.main.setBackgroundColor(this.colors['bg'])
 
         this.add.rectangle(this.gameLength.x / 2, this.gameLength.y / 2, 700, 700, this.colors['frame']);
+        this.pointText = this.add.text(0, 0, '0:0', {fontSize: '48px', fontFamily:'Arial'});
     }
 
     update() {
@@ -88,5 +90,4 @@ export class MosaicScene extends Phaser.Scene {
         this.add.circle(x, y, 50, this.colors['rim']);
         this.add.circle(x, y, 45, this.colors[color]);
     }
-
 }

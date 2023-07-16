@@ -82,6 +82,7 @@ export class Game {
     private size: number;
     public pieces: Pieces;
     public player: number = 1;
+    private point: { f: number, s: number } = { f: 0, s: 0 };
     constructor(scene: MosaicScene) {
         this.scene = scene;
         this.size = scene.size;
@@ -140,5 +141,11 @@ export class Game {
         console.log('place', action);
         this.pieces.setItem(action, player);
         this.scene.place.push({ action: action, player: player });
+        if (player==1){
+            this.point.f += 1;
+        } else if (player==-1){
+            this.point.s += 1;
+        }
+        this.scene.pointText.setText(`${this.point.f}:${this.point.s}`);
     }
 }
