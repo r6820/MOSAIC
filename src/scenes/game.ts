@@ -93,7 +93,6 @@ export class MosaicGame {
     public player: number = Constant.playerId.first;
     public point: { f: number, s: number } = { f: 0, s: 0 };
     private moves: number = 0;
-    private unlock: boolean = true;
     constructor(scene: MosaicScene) {
         this.scene = scene;
         this.size = Constant.size;
@@ -107,33 +106,29 @@ export class MosaicGame {
     // }
 
     public next(action: Position) {
-        if (this.unlock) {
-            this.unlock = false;
-            this.board = this.board.copy();
-            this.gameRecord[this.moves] = this.board;
-            this.board.setItem(new Piece(action, this.player));
-            let fp: Position[] = [];
-            let sp: Position[] = [];
-            do {
-                const lp = this.board.legalPieces();
-                fp = this.board.countBelow(v => Number(v == Constant.playerId.first)).where((v, i, j, k) => lp[i][j][k] == 1 && v >= 3);
-                sp = this.board.countBelow(v => Number(v == Constant.playerId.second)).where((v, i, j, k) => lp[i][j][k] == 1 && v >= 3);
-                console.log(fp, sp);
+        this.board = this.board.copy();
+        this.gameRecord[this.moves] = this.board;
+        this.board.setItem(new Piece(action, this.player));
+        let fp: Position[] = [];
+        let sp: Position[] = [];
+        do {
+            const lp = this.board.legalPieces();
+            fp = this.board.countBelow(v => Number(v == Constant.playerId.first)).where((v, i, j, k) => lp[i][j][k] == 1 && v >= 3);
+            sp = this.board.countBelow(v => Number(v == Constant.playerId.second)).where((v, i, j, k) => lp[i][j][k] == 1 && v >= 3);
+            console.log(fp, sp);
 
-                fp.forEach(p => { this.board.setItem(new Piece(p, Constant.playerId.first)) });
-                sp.forEach(p => { this.board.setItem(new Piece(p, Constant.playerId.second)) });
-            } while (fp.length + sp.length > 0)
+            fp.forEach(p => { this.board.setItem(new Piece(p, Constant.playerId.first)) });
+            sp.forEach(p => { this.board.setItem(new Piece(p, Constant.playerId.second)) });
+        } while (fp.length + sp.length > 0)
 
-            this.point = {
-                f: this.board.where(v => v == Constant.playerId.first).length,
-                s: this.board.where(v => v == Constant.playerId.second).length
-            }
-
-            this.scene.destroyAll();
-            this.scene.place();
-            this.moves += 1;
-            this.player = this.moves % 2 == 0 ? Constant.playerId.second : Constant.playerId.first;
-            this.unlock = true;
+        this.point = {
+            f: this.board.where(v => v == Constant.playerId.first).length,
+            s: this.board.where(v => v == Constant.playerId.second).length
         }
-    }        
+
+        this.scene.destroyAll();
+        this.scene.place();
+        this.moves += 1;
+        this.player = this.moves % 2 == 0 ? Constant.playerId.second : Constant.playerId.first;
+    }
 }
