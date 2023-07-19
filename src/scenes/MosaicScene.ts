@@ -4,8 +4,6 @@ import { Stone, Position, Piece, Constant, Hole } from './Constant';
 
 export class MosaicScene extends Phaser.Scene {
     public mosaicGame: MosaicGame;
-    private placeList: Piece[] = [];
-    private placeableList: Position[] = [];
     private stoneList: Stone[] = [];
     private holeList: Hole[] = [];
     public pointText!: Phaser.GameObjects.Text;
@@ -26,31 +24,22 @@ export class MosaicScene extends Phaser.Scene {
         this.cameras.main.setBackgroundColor(Constant.colors.bg)
         this.add.rectangle(Constant.width / 2, Constant.height / 2, 700, 700, Constant.colors.frame);
         this.pointText = this.add.text(0, 0, '0:0', { fontSize: '48px', fontFamily: 'Arial' });
+        this.preplace();
         this.place();
     }
 
     update() {
-        this.placeList.forEach(v => {
-            this.stoneList.push(new Stone(this, v));
-        });
-        this.placeList.splice(0);
-        this.placeableList.forEach(action => {
-            this.holeList.push(new Hole(this, action))
-        });
-        this.placeableList.splice(0);
+
+    }
+
+    private preplace() {
+        this.stoneList = this.mosaicGame.board.where(() => true).map(({ position: pos }) => new Stone(this, pos));
+        this.holeList = this.mosaicGame.board.where(() => true).map(({ position: pos }) => new Hole(this, pos));
     }
 
     public place() {
-        this.placeList = this.mosaicGame.board.getPosition()
-            .map(action => new Piece(action, this.mosaicGame.board.getItem(action)));
-        this.placeableList = this.mosaicGame.board.legalPieces().getPosition();
+        this.stoneList.forEach(stone => { stone.place() })
+        this.holeList.forEach(hole => { hole.place() })
         this.pointText.setText(`${this.mosaicGame.point.f}:${this.mosaicGame.point.s}`)
-    }
-
-    public destroyAll() {
-        this.stoneList.forEach(s => { s.destroy() });
-        this.holeList.forEach(h => { h.destroy() });
-        this.stoneList.splice(0);
-        this.holeList.splice(0);
     }
 }

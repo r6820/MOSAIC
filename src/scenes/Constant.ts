@@ -1,4 +1,5 @@
 import { MosaicScene } from "./MosaicScene";
+import { MosaicGame } from "./game";
 
 export class xy<T extends number> {
     public x: T;
@@ -22,35 +23,57 @@ export class xy<T extends number> {
 }
 
 export class Stone {
+    private pos: Position;
+    private mosaicGame: MosaicGame;
+    private container: Phaser.GameObjects.Container;
     private rim: Phaser.GameObjects.Arc;
     private mid: Phaser.GameObjects.Arc;
-    constructor(scene: MosaicScene, piece: Piece) {
-        const { action, player } = piece
-        const { x, y } = Constant.stonePosition(action);
-        const color: string = `stone${player}`
-        console.log(x, y, color);
-        this.rim = scene.add.circle(x, y, 50, Constant.colors.rim);
-        this.mid = scene.add.circle(x, y, 45, Constant.colors[color]);
-
+    constructor(scene: MosaicScene, pos: Position) {
+        this.mosaicGame = scene.mosaicGame;
+        this.pos = pos;
+        const { x, y } = Constant.stonePosition(pos);
+        this.container = scene.add.container(x, y);
+        this.rim = scene.add.circle(0, 0, 50, Constant.colors.rim);
+        this.mid = scene.add.circle(0, 0, 45, Constant.colors.rim);
+        this.container.add([this.rim, this.mid]);
+        this.place()
     }
-    public destroy() {
-        console.log('destroy', this.rim, this.mid);
-        this.rim.destroy(); this.mid.destroy();
+
+    public place() {
+        const val = this.mosaicGame.board.get(this.pos);
+        if (val == Constant.playerId.brank) {
+            this.container.setVisible(false);
+        } else {
+            this.container.setVisible(true);
+            this.mid.fillColor = Constant.colors[`stone${val}`]
+        }
     }
 }
 
 export class Hole {
+    private pos: Position;
+    private mosaicGame: MosaicGame;
     private hole: Phaser.GameObjects.Arc;
-    constructor(scene: MosaicScene, action: Position) {
-        const { x, y } = Constant.stonePosition(action);
+    constructor(scene: MosaicScene, pos: Position) {
+        this.mosaicGame = scene.mosaicGame;
+        this.pos = pos;
+        const { x, y } = Constant.stonePosition(pos);
         this.hole = scene.add.circle(x, y, 18, Constant.colors.hole).setInteractive();
         this.hole.on('pointerdown', () => {
-            scene.mosaicGame.next(action);
-            this.hole.destroy();
+            scene.mosaicGame.next(pos);
+            this.hole.setVisible(false);
             console.log('click', this.hole.x, this.hole.y);
         });
+        this.place()
     }
-    public destroy() { this.hole.destroy(); }
+    public place() {
+        const val = this.mosaicGame.board.legalPieces().get(this.pos);
+        if (val == 0) {
+            this.hole.setVisible(false);
+        } else {
+            this.hole.setVisible(true);
+        }
+    }
 
 }
 
@@ -64,10 +87,10 @@ export class Position {
 }
 
 export class Piece {
-    action: Position; player: number
+    position: Position; value: number
     constructor(action: Position, player: number) {
-        this.action = action;
-        this.player = player;
+        this.position = action;
+        this.value = player;
     }
 }
 
@@ -81,7 +104,7 @@ export class Constant {
     static boardLength: number = 700;
     static boardSize: xy<number> = new xy(this.boardLength, this.boardLength);
 
-    static playerId: Record<string, number> = { first: 1, second: -1, neutral: 200 }
+    static playerId: Record<string, number> = { first: 1, second: -1, neutral: 200, brank: 0 }
     static changePlayer(p: number) {
         if (p == this.playerId.first) {
             return this.playerId.second;
@@ -99,6 +122,7 @@ export class Constant {
         [`stone${this.playerId.neutral}`]: 0xaaaaaa,
         [`stone${this.playerId.first}`]: 0xaa22aa,
         [`stone${this.playerId.second}`]: 0x22aaaa,
+        [`stone${this.playerId.brank}`]: 0xeeeeee,
         // 'stone2': 0xaaaaaa,
         // 'stone1': 0xaa22aa,
         // 'stone-1': 0x22aaaa,
