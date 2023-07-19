@@ -68,11 +68,7 @@ export class Hole {
     }
     public place() {
         const val = this.mosaicGame.board.legalPieces().get(this.pos);
-        if (val == 0) {
-            this.hole.setVisible(false);
-        } else {
-            this.hole.setVisible(true);
-        }
+        this.hole.setVisible(val);
     }
 
 }
@@ -86,11 +82,11 @@ export class Position {
     }
 }
 
-export class Piece {
-    position: Position; value: number
-    constructor(action: Position, player: number) {
+export class Piece<T> {
+    position: Position; value: T
+    constructor(action: Position, value: T) {
         this.position = action;
-        this.value = player;
+        this.value = value;
     }
 }
 
