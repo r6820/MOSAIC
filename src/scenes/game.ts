@@ -2,24 +2,12 @@ import { MosaicScene } from "./MosaicScene";
 import { Position, Piece, Constant } from './Constant';
 
 export class Board extends Array<Array<Array<number>>>{
-    private size: number = 7;
-    constructor(size?: number, pieces?: number[][][]) {
-        super();
-        if (pieces) {
-            this.size = pieces.length
-            this.push(...pieces);
-        } else {
-            if (size) { this.size = size; }
-            this.push(...new Array<number>(this.size).fill(0).map((_, i) =>
-                new Array<number[]>(i + 1).fill([0]).map(() => new Array<number>(i + 1).fill(0)))
-            );
-            this[this.size - 1][(this.size - 1) / 2][(this.size - 1) / 2]
-                = Constant.playerId.neutral;
-        }
+    constructor(...pieces: number[][][]) {
+        super(...pieces);
     }
 
     public mapPiece(callbackfn: (piece: Piece) => number): Board {
-        return new Board(this.size, this.map(
+        return new Board(...this.map(
             (v1, i) => v1.map(
                 (v2, j) => v2.map(
                     (v3, k) => callbackfn(new Piece(new Position(i, j, k), v3))
@@ -45,7 +33,7 @@ export class Board extends Array<Array<Array<number>>>{
     public countBelow(conditionfn: (v: number) => number): Board {
         return this.mapPiece(piece => {
             const { position: { i, j, k } } = piece;
-            return i == this.size - 1 ? 0 :
+            return i == Constant.size - 1 ? 0 :
                 conditionfn(this[i + 1][j][k])
                 + conditionfn(this[i + 1][j + 1][k])
                 + conditionfn(this[i + 1][j][k + 1])
@@ -83,7 +71,7 @@ export class Board extends Array<Array<Array<number>>>{
         return this.mapPiece(
             piece => {
                 const { position: a, value: v } = piece
-                return Number(v == 0 && (a.i == this.size - 1 || below.get(a) == 4))
+                return Number(v == 0 && (a.i == Constant.size - 1 || below.get(a) == 4))
             }
         )
     }
@@ -95,7 +83,6 @@ export class Board extends Array<Array<Array<number>>>{
 
 export class MosaicGame {
     private scene: MosaicScene;
-    private size: number;
     private gameRecord: Board[] = [];
     public board: Board;
     public player: number = Constant.playerId.first;
@@ -103,14 +90,24 @@ export class MosaicGame {
     private moves: number = 0;
     constructor(scene: MosaicScene) {
         this.scene = scene;
-        this.size = Constant.size;
-        this.board = new Board(this.size);
+        this.board = this.initialBoard();
         this.gameRecord[this.moves] = this.board;
     }
 
     // private isDone(): boolean {
     //     return false
     // }
+
+    private initialBoard(): Board {
+        let board = new Array<number>(Constant.size).fill(0).map((_, i) =>
+            new Array<number[]>(i + 1).fill([0]).map(() =>
+                new Array<number>(i + 1).fill(0)
+            )
+        )
+        board[Constant.size - 1][(Constant.size - 1) / 2][(Constant.size - 1) / 2]
+            = Constant.playerId.neutral;
+        return new Board(...board)
+    }
 
     public next(action: Position) {
         this.board = this.board.copy();

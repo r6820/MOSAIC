@@ -1,6 +1,6 @@
 import Phaser from "phaser";
 import { MosaicGame } from './game';
-import { Stone, Position, Piece, Constant, Hole } from './Constant';
+import { Stone, Constant, Hole } from './Constant';
 
 export class MosaicScene extends Phaser.Scene {
     public mosaicGame: MosaicGame;
