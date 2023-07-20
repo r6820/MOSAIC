@@ -1,11 +1,12 @@
 import Phaser from "phaser";
 import { MosaicScene } from "./scenes/MosaicScene";
-import { Constant } from "./scenes/Constant";
+import { Constants } from "./utils/Constants";
 
 const config: Phaser.Types.Core.GameConfig = {
   type: Phaser.AUTO,
-  width: Constant.width,
-  height: Constant.height,
+  backgroundColor: Constants.colors.bg,
+  width: Constants.width,
+  height: Constants.height,
   scene: [MosaicScene,],
 };
 new Phaser.Game(config);
