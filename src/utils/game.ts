@@ -84,6 +84,7 @@ export class Board<T> extends Array<Array<Array<T>>>{
     public next(piece: Piece<number>): Board<number> {
         const board = this.copy();
         board.set(piece);
+        console.log('place', piece);
         let fp: Piece<number>[] = [];
         let sp: Piece<number>[] = [];
         do {
@@ -91,8 +92,17 @@ export class Board<T> extends Array<Array<Array<T>>>{
             fp = board.countBelow(v => v == Constants.playerId.first).where(p => lp.get(p.position) && p.value >= 3);
             sp = board.countBelow(v => v == Constants.playerId.second).where(p => lp.get(p.position) && p.value >= 3);
 
-            fp.forEach(({ position: pos }) => { board.set({ position: pos, value: Constants.playerId.first }) });
-            sp.forEach(({ position: pos }) => { board.set({ position: pos, value: Constants.playerId.second }) });
+            fp.forEach(({ position: pos }) => {
+                const p = { position: pos, value: Constants.playerId.first };
+                board.set(p);
+                console.log('place', p);
+            });
+            sp.forEach(({ position: pos }) => {
+                const p = { position: pos, value: Constants.playerId.second };
+                board.set(p);
+                console.log('place', p);
+                
+            });
         } while (fp.length + sp.length > 0)
         return board;
     }

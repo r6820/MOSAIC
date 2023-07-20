@@ -4,6 +4,7 @@ import { Constants } from "./utils/Constants";
 
 const config: Phaser.Types.Core.GameConfig = {
   type: Phaser.AUTO,
+  parent: 'phaser-container',
   backgroundColor: Constants.colors.bg,
   width: Constants.width,
   height: Constants.height,

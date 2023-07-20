@@ -50,51 +50,52 @@ export class MosaicScene extends Phaser.Scene {
     }
 }
 
-class Stone {
+class Stone extends Phaser.GameObjects.Container{
     private pos: Position;
     private mosaicGame: MosaicGame;
-    private container: Phaser.GameObjects.Container;
     private rim: Phaser.GameObjects.Arc;
     private mid: Phaser.GameObjects.Arc;
     constructor(scene: MosaicScene, pos: Position) {
+        const { x, y } = scene.stonePosition(pos);
+        super(scene, x, y);
         this.mosaicGame = scene.mosaicGame;
         this.pos = pos;
-        const { x, y } = scene.stonePosition(pos);
-        this.container = scene.add.container(x, y);
-        this.container.setDepth(scene.size - pos.i)
+        scene.add.existing(this);
+        this.setDepth(scene.size - pos.i);
         this.rim = scene.add.circle(0, 0, scene.stoneSize / 2, Constants.colors.rim);
         this.mid = scene.add.circle(0, 0, scene.stoneSize / 2 * Constants.stoneRatio, Constants.colors.rim);
-        this.container.add([this.rim, this.mid]);
-        this.place()
+        this.add([this.rim, this.mid]);
+        this.place();
     }
 
     public place() {
         const val = this.mosaicGame.board.get(this.pos);
         if (val == 0) {
-            this.container.setVisible(false);
+            this.setVisible(false);
         } else {
-            this.container.setVisible(true);
+            this.setVisible(true);
             this.mid.fillColor = Constants.colors[`stone${val}`]
         }
     }
 }
 
-class Hole {
+class Hole extends Phaser.GameObjects.Container{
     private pos: Position;
     private mosaicGame: MosaicGame;
     private hole: Phaser.GameObjects.Arc;
     constructor(scene: MosaicScene, pos: Position) {
+        const { x, y } = scene.stonePosition(pos);
+        super(scene, x, y);
         this.mosaicGame = scene.mosaicGame;
         this.pos = pos;
-        const { x, y } = scene.stonePosition(pos);
+        scene.add.existing(this);
         this.hole = scene.add.circle(x, y, scene.stoneSize / 2 * Constants.holeRatio, Constants.colors.hole);
         this.hole.on('pointerdown', () => {
-            scene.mosaicGame.next(pos);
-            this.hole.setVisible(false);
             console.log('click', this.hole.x, this.hole.y, pos);
+            scene.mosaicGame.next(pos);
         });
-        this.hole.setDepth(scene.size)
-        this.place()
+        this.hole.setDepth(scene.size*2);
+        this.place();
     }
     public place() {
         const val = this.mosaicGame.board.legalPieces().get(this.pos);
