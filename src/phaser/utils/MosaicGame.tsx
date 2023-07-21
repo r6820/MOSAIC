@@ -1,6 +1,8 @@
 import { MosaicScene } from "../scenes/MosaicScene";
 import { Constants } from './Constants';
 import { Position, Piece } from "./interfaces";
+import ReactDOM from 'react-dom/client'
+import { PrevNext } from "../../components/ui";
 
 export class Board<T> extends Array<Array<Array<T>>>{
     constructor(...pieces: T[][][]) {
@@ -101,7 +103,7 @@ export class Board<T> extends Array<Array<Array<T>>>{
                 const p = { position: pos, value: Constants.playerId.second };
                 board.set(p);
                 console.log('place', p);
-                
+
             });
         } while (fp.length + sp.length > 0)
         return board;
@@ -119,6 +121,9 @@ export class MosaicGame {
         this.scene = scene;
         this.board = this.initialBoard();
         this.gameRecord[this.moves] = this.board;
+        ReactDOM.createRoot(document.getElementById('prev-next')!).render(
+            <PrevNext onclickPrev={this.prev} onclickNext={this.next} />
+        )
     }
 
     // private isDone(): boolean {
@@ -145,7 +150,7 @@ export class MosaicGame {
     public move(pos: Position) {
         this.moves += 1;
         this.player = this.moves % 2 == 1 ? Constants.playerId.first : Constants.playerId.second;
-        
+
         this.board = this.board.next({ position: pos, value: this.player });
         this.gameRecord[this.moves] = this.board;
 
@@ -157,10 +162,10 @@ export class MosaicGame {
         this.scene.place();
     }
 
-    public prev(){
+    public prev() {
         console.log('prev');
     }
-    public next(){
+    public next() {
         console.log('next');
     }
 }

@@ -1,5 +1,5 @@
 import Phaser from "phaser";
-import { Board, MosaicGame } from '../utils/game';
+import { Board, MosaicGame } from '../utils/MosaicGame';
 import { Constants } from '../utils/Constants';
 import { Position } from "../utils/interfaces";
 
@@ -32,8 +32,6 @@ export class MosaicScene extends Phaser.Scene {
         }));
         this.pointText = this.add.text(0, 0, '0:0', { fontSize: '48px', fontFamily: 'Arial' });
         this.place();
-        this.bindOnClickFunc('prev-button', this.mosaicGame.prev);
-        this.bindOnClickFunc('next-button', this.mosaicGame.next);
     }
 
     update() { }
@@ -49,13 +47,6 @@ export class MosaicScene extends Phaser.Scene {
             x: (j + (this.size - i) / 2) * this.stoneSize + Constants.offset.x,
             y: (k + (this.size - i) / 2) * this.stoneSize + Constants.offset.y
         }
-    }
-
-    private bindOnClickFunc(id:string, onClickfn:()=>void){
-        const button = document.getElementById(id);
-            if (button) {
-                button.onclick = onClickfn;
-            }
     }
 }
 
