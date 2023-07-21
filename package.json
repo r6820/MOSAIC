@@ -1,5 +1,6 @@
 {
   "name": "mosaic",
+  "homepage": "https://r6820.github.io/MOSAIC",
   "private": true,
   "version": "0.0.0",
   "type": "module",
