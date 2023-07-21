@@ -10,4 +10,10 @@ const config: Phaser.Types.Core.GameConfig = {
   height: Constants.height,
   scene: [MosaicScene,],
 };
-new Phaser.Game(config);
+
+export function create(): () => void {
+  const g = new Phaser.Game(config);
+  return () => {
+    g?.destroy(true);
+  }
+}

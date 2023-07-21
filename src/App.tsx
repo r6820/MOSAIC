@@ -1,17 +1,15 @@
-import { useState } from 'react'
+import { useEffect } from 'react'
 import './App.css'
+import { PrevNext } from './components/ui'
+import { create } from './phaser/main'
 
 function App() {
-  const [count, setCount] = useState(0)
+  useEffect(create, [])
 
   return (
     <>
       <div id="phaser-container"></div>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-      </div>
+      <PrevNext onclickPrev={()=>{}} onclickNext={()=>{}}/>
     </>
   )
 }
