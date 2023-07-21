@@ -14,7 +14,7 @@ const config: Phaser.Types.Core.GameConfig = {
   scene: [mosaicScene,],
 };
 
-export function create(): () => void {
+export function createPhaser(): () => void {
   const g = new Phaser.Game(config);
   g.scene
   return () => {

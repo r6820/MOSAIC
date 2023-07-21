@@ -32,11 +32,9 @@ export class MosaicScene extends Phaser.Scene {
         this.render();
     }
 
-    update() { }
-
     public render() {
-        this.stoneBoard.forEachPiece(({ value: { stone, hole } }) => { stone.place(); hole.place() })
-        this.pointText.setText(`${this.mosaicGame.point.f}:${this.mosaicGame.point.s}`)
+        this.stoneBoard.forEachPiece(({ value: { stone, hole } }) => { stone.render(); hole.render() })
+        this.pointText.setText(`${this.mosaicGame.getPoint(Constants.playerId.first)}:${this.mosaicGame.getPoint(Constants.playerId.second)}`)
     }
 
     public stonePosition(action: Position) {
@@ -64,10 +62,10 @@ class Stone extends Phaser.GameObjects.Container {
         this.rim = scene.add.circle(0, 0, scene.stoneSize / 2, Constants.colors.rim);
         this.mid = scene.add.circle(0, 0, scene.stoneSize / 2 * Constants.stoneRatio, Constants.colors.rim);
         this.add([this.rim, this.mid]);
-        this.place();
+        this.render();
     }
 
-    public place() {
+    public render() {
         const val = this.mosaicGame.board.get(this.pos);
         if (val == 0) {
             this.setVisible(false);
@@ -94,9 +92,9 @@ class Hole extends Phaser.GameObjects.Container {
             scene.mosaicGame.move(pos);
         });
         this.hole.setDepth(scene.size * 2);
-        this.place();
+        this.render();
     }
-    public place() {
+    public render() {
         const val = this.mosaicGame.board.legalPieces().get(this.pos);
         if (val) {
             this.hole.setInteractive();

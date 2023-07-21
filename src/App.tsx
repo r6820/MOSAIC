@@ -1,10 +1,10 @@
 import { useEffect } from 'react'
 import './App.css'
-import { mosaicGame, create } from './phaser/main'
+import { mosaicGame, createPhaser } from './phaser/main'
 import { PrevNext } from './components/ui'
 
 function App() {
-  useEffect(create, [])
+  useEffect(createPhaser, [])
 
   return (
     <>

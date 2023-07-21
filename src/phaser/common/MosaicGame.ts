@@ -1,8 +1,24 @@
 import { MosaicScene, Constants, Position, Piece } from "../";
 
 export class Board<T> extends Array<Array<Array<T>>>{
+    private maxStones: number = 0;
+    private win: { first: boolean, second: boolean } = { first: false, second: false };
     constructor(...pieces: T[][][]) {
         super(...pieces);
+        const a = this.maxStones = this.length * (this.length + 1) * (2 * this.length + 1) / 6
+        this.maxStones = this.length % 4 == 1 ? (a - 1) / 2
+            : this.length % 4 == 2 ? (a + 1) / 2
+                : a / 2
+    }
+
+    private isWin(player: number): boolean {
+        return this.count(p => p.value == player) >= this.maxStones
+    }
+
+    public isDone(): boolean {
+        this.win.first = this.isWin(Constants.playerId.first)
+        this.win.second = this.isWin(Constants.playerId.second)
+        return this.win.first || this.win.second
     }
 
     public reverse(): Board<T> {
@@ -70,11 +86,12 @@ export class Board<T> extends Array<Array<Array<T>>>{
     }
 
     public legalPieces(): Board<boolean> {
+        const isDone = this.isDone();
         const below = this.countBelow(v => v != 0);
         return this.mapPiece(
             piece => {
                 const { position: a, value: v } = piece
-                return v == 0 && (a.i == this.length - 1 || below.get(a) == 4)
+                return !isDone && v == 0 && (a.i == this.length - 1 || below.get(a) == 4)
             }
         )
     }
@@ -90,19 +107,24 @@ export class Board<T> extends Array<Array<Array<T>>>{
             fp = board.countBelow(v => v == Constants.playerId.first).where(p => lp.get(p.position) && p.value >= 3);
             sp = board.countBelow(v => v == Constants.playerId.second).where(p => lp.get(p.position) && p.value >= 3);
 
-            fp.forEach(({ position: pos }) => {
-                const p = { position: pos, value: Constants.playerId.first };
-                board.set(p);
-                console.log('place', p);
-            });
-            sp.forEach(({ position: pos }) => {
-                const p = { position: pos, value: Constants.playerId.second };
-                board.set(p);
-                console.log('place', p);
-
-            });
+            Board.consecutivePlace(board, fp, Constants.playerId.first)
+            Board.consecutivePlace(board, sp, Constants.playerId.second)
         } while (fp.length + sp.length > 0)
         return board;
+    }
+
+    private static consecutivePlace(board: Board<number>, plcArray: Piece<number>[], player: number) {
+        plcArray.forEach(({ position: pos }) => {
+            if (!board.isWin(player)) {
+                console.log(board.count(p => p.value == player), board.maxStones);
+
+                const p = { position: pos, value: player };
+                board.set(p);
+                console.log('place', p);
+            }
+        });
+
+        if (board.isWin(player)) { plcArray.splice(0) }
     }
 }
 
@@ -110,18 +132,13 @@ export class MosaicGame {
     private scene: MosaicScene;
     private gameRecord: Board<number>[] = [];
     private player: number = Constants.playerId.first;
-    public moves: number = 0;
+    private moves: number = 0;
     public board: Board<number>;
-    public point: { f: number, s: number } = { f: 0, s: 0 };
     constructor(scene: MosaicScene) {
         this.scene = scene;
         this.board = this.initialBoard();
         this.gameRecord[this.moves] = this.board;
     }
-
-    // private isDone(): boolean {
-    //     return false
-    // }
 
     private initialBoard() {
         const board = new Board<number>(
@@ -140,7 +157,12 @@ export class MosaicGame {
         return board
     }
 
+    public getPoint(player:number): number{
+        return this.board.count(p => p.value == player)
+    }
+
     public move(pos: Position) {
+        if (this.board.isDone()) { return }
         this.moves += 1;
         this.player = this.moves % 2 == 1 ? Constants.playerId.first : Constants.playerId.second;
 
@@ -148,45 +170,48 @@ export class MosaicGame {
         this.gameRecord.splice(this.moves);
         this.gameRecord[this.moves] = this.board;
 
-        this.point = {
-            f: this.board.count(p => p.value == Constants.playerId.first),
-            s: this.board.count(p => p.value == Constants.playerId.second)
-        }
-
         this.scene.render();
     }
 
     public prev() {
-        console.log('prev');
         if (this.moves == 0) { return }
+        console.log('prev');
 
         this.moves -= 1;
         this.player = this.moves % 2 == 1 ? Constants.playerId.first : Constants.playerId.second;
 
         this.board = this.gameRecord[this.moves];
 
-        this.point = {
-            f: this.board.count(p => p.value == Constants.playerId.first),
-            s: this.board.count(p => p.value == Constants.playerId.second)
-        }
-
         this.scene.render();
     }
 
     public next() {
-        console.log('next');
         if (this.moves == this.gameRecord.length - 1) { return }
+        console.log('next');
 
         this.moves += 1;
         this.player = this.moves % 2 == 1 ? Constants.playerId.first : Constants.playerId.second;
 
         this.board = this.gameRecord[this.moves];
 
-        this.point = {
-            f: this.board.count(p => p.value == Constants.playerId.first),
-            s: this.board.count(p => p.value == Constants.playerId.second)
-        }
-
         this.scene.render();
+    }
+
+    public toJSON(): string {
+        return JSON.stringify(this.gameRecord)
+    }
+
+    public fromJSON(jsonstring: string): Board<number>[] {
+        let arr: number[][][][] = [];
+        try {
+            arr = JSON.parse(jsonstring) as number[][][][]
+        } catch (error) {
+            if (error instanceof Error) {
+                console.log(error.message);
+            }
+            alert('ERROR: Invalid')
+        } finally {
+            return arr.map(v => new Board(...v))
+        }
     }
 }
