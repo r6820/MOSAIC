@@ -1,4 +1,5 @@
 export class Constants {
+    static defaultSize: number = 7;
     static offset: { x: number, y: number } = { x: 50, y: 50 };
 
     static width = 800;

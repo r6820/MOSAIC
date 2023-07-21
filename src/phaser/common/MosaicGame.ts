@@ -1,8 +1,4 @@
-import { MosaicScene } from "../scenes/MosaicScene";
-import { Constants } from './Constants';
-import { Position, Piece } from "./interfaces";
-import ReactDOM from 'react-dom/client'
-import { PrevNext } from "../../components/ui";
+import { MosaicScene, Constants, Position, Piece } from "../";
 
 export class Board<T> extends Array<Array<Array<T>>>{
     constructor(...pieces: T[][][]) {
@@ -114,16 +110,13 @@ export class MosaicGame {
     private scene: MosaicScene;
     private gameRecord: Board<number>[] = [];
     private player: number = Constants.playerId.first;
-    private moves: number = 0;
+    public moves: number = 0;
     public board: Board<number>;
     public point: { f: number, s: number } = { f: 0, s: 0 };
     constructor(scene: MosaicScene) {
         this.scene = scene;
         this.board = this.initialBoard();
         this.gameRecord[this.moves] = this.board;
-        ReactDOM.createRoot(document.getElementById('prev-next')!).render(
-            <PrevNext onclickPrev={this.prev} onclickNext={this.next} />
-        )
     }
 
     // private isDone(): boolean {
@@ -152,6 +145,7 @@ export class MosaicGame {
         this.player = this.moves % 2 == 1 ? Constants.playerId.first : Constants.playerId.second;
 
         this.board = this.board.next({ position: pos, value: this.player });
+        this.gameRecord.splice(this.moves);
         this.gameRecord[this.moves] = this.board;
 
         this.point = {
@@ -159,13 +153,40 @@ export class MosaicGame {
             s: this.board.count(p => p.value == Constants.playerId.second)
         }
 
-        this.scene.place();
+        this.scene.render();
     }
 
     public prev() {
         console.log('prev');
+        if (this.moves == 0) { return }
+
+        this.moves -= 1;
+        this.player = this.moves % 2 == 1 ? Constants.playerId.first : Constants.playerId.second;
+
+        this.board = this.gameRecord[this.moves];
+
+        this.point = {
+            f: this.board.count(p => p.value == Constants.playerId.first),
+            s: this.board.count(p => p.value == Constants.playerId.second)
+        }
+
+        this.scene.render();
     }
+
     public next() {
         console.log('next');
+        if (this.moves == this.gameRecord.length - 1) { return }
+
+        this.moves += 1;
+        this.player = this.moves % 2 == 1 ? Constants.playerId.first : Constants.playerId.second;
+
+        this.board = this.gameRecord[this.moves];
+
+        this.point = {
+            f: this.board.count(p => p.value == Constants.playerId.first),
+            s: this.board.count(p => p.value == Constants.playerId.second)
+        }
+
+        this.scene.render();
     }
 }

@@ -1,17 +1,15 @@
 import Phaser from "phaser";
-import { Board, MosaicGame } from '../utils/MosaicGame';
-import { Constants } from '../utils/Constants';
-import { Position } from "../utils/interfaces";
+import { Board, MosaicGame, Constants, Position } from "../";
 
 export class MosaicScene extends Phaser.Scene {
     public mosaicGame: MosaicGame;
     private stoneBoard!: Board<{ stone: Stone, hole: Hole }>;
     private pointText!: Phaser.GameObjects.Text;
-    public size: number = 7;
+    public size: number = Constants.defaultSize;
     public stoneSize: number = Constants.boardLength / this.size;
 
     constructor(size?: number) {
-        super({ key: 'myscene', active: true });
+        super({ key: 'mosaicScene', active: true });
         if (size != null) {
             this.size = size;
             this.stoneSize = Constants.boardLength / this.size;
@@ -31,12 +29,12 @@ export class MosaicScene extends Phaser.Scene {
             hole: new Hole(this, pos)
         }));
         this.pointText = this.add.text(0, 0, '0:0', { fontSize: '48px', fontFamily: 'Arial' });
-        this.place();
+        this.render();
     }
 
     update() { }
 
-    public place() {
+    public render() {
         this.stoneBoard.forEachPiece(({ value: { stone, hole } }) => { stone.place(); hole.place() })
         this.pointText.setText(`${this.mosaicGame.point.f}:${this.mosaicGame.point.s}`)
     }
@@ -51,7 +49,7 @@ export class MosaicScene extends Phaser.Scene {
 }
 
 
-class Stone extends Phaser.GameObjects.Container{
+class Stone extends Phaser.GameObjects.Container {
     private pos: Position;
     private mosaicGame: MosaicGame;
     private rim: Phaser.GameObjects.Arc;
@@ -80,7 +78,7 @@ class Stone extends Phaser.GameObjects.Container{
     }
 }
 
-class Hole extends Phaser.GameObjects.Container{
+class Hole extends Phaser.GameObjects.Container {
     private pos: Position;
     private mosaicGame: MosaicGame;
     private hole: Phaser.GameObjects.Arc;
@@ -95,7 +93,7 @@ class Hole extends Phaser.GameObjects.Container{
             console.log('click', this.hole.x, this.hole.y, pos);
             scene.mosaicGame.move(pos);
         });
-        this.hole.setDepth(scene.size*2);
+        this.hole.setDepth(scene.size * 2);
         this.place();
     }
     public place() {
