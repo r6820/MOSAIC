@@ -10,7 +10,7 @@ export class Constants {
     static stoneRatio: number = 0.9
     static holeRatio: number = 0.36
 
-    static playerId: Record<string, number> = { first: 1, second: -1, neutral: 200 }
+    static playerId: Record<string, number> = { first: 1, second: 2, neutral: 3 }
     static changePlayer(p: number) {
         if (p == this.playerId.first) {
             return this.playerId.second;
