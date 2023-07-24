@@ -1,4 +1,4 @@
-export class Constants {
+export class phaserConstants {
     static defaultSize: number = 7;
     static offset: { x: number, y: number } = { x: 50, y: 50 };
 
@@ -7,8 +7,9 @@ export class Constants {
 
     static boardLength: number = 700;
 
-    static stoneRatio: number = 0.9
-    static holeRatio: number = 0.36
+    static stoneRatio: number = 0.9;
+    static holeRatio: number = 0.36;
+    static delayTime: number = 300;
 
     static playerId: Record<string, number> = { first: 1, second: 2, neutral: 3 }
     static changePlayer(p: number) {

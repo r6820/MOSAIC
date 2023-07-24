@@ -1,13 +1,12 @@
-import { MosaicScene, Constants, Position, Piece } from "../";
-import { compress, decompress, arrayDevide} from "../../common";
+import { MosaicScene, phaserConstants as Constants, Position, Piece } from "../";
+import { arrayDevide, compress, decompress } from "../../common";
 import { Code64 } from "../../common";
+
 
 export class Board<T> extends Array<Array<Array<T>>>{
     private maxStones: number = 0;
-    public background: boolean;
-    constructor(background: boolean, ...pieces: T[][][]) {
+    constructor(...pieces: T[][][]) {
         super(...pieces);
-        this.background = background;
         const a = this.maxStones = this.length * (this.length + 1) * (2 * this.length + 1) / 6
         this.maxStones = this.length % 4 == 1 ? (a - 1) / 2
             : this.length % 4 == 2 ? (a + 1) / 2
@@ -23,11 +22,11 @@ export class Board<T> extends Array<Array<Array<T>>>{
     }
 
     public reverse(): Board<T> {
-        return new Board(this.background, ...[...this].reverse())
+        return new Board(...[...this].reverse())
     }
 
     public mapPiece<U>(callbackfn: (piece: Piece<T>) => U): Board<U> {
-        return new Board(this.background, ...this.map(
+        return new Board(...this.map(
             (v1, i) => v1.map(
                 (v2, j) => v2.map(
                     (v3, k) => callbackfn({ position: { i, j, k }, value: v3 })
@@ -82,8 +81,12 @@ export class Board<T> extends Array<Array<Array<T>>>{
         this[i][j][k] = value;
     }
 
-    public copy(): Board<number> {
-        return this.mapPiece(p => Number(p.value));
+    public copy(): Board<T> {
+        return this.mapPiece(({ value: v }) => v);
+    }
+
+    private merge<U, V>(otherBoard: Board<U>, mergeFunction: (v1: T, v2: U) => V): Board<V> {
+        return this.mapPiece(({ position: pos, value: v }) => mergeFunction(v, otherBoard.get(pos)))
     }
 
     public legalPieces(): Board<boolean> {
@@ -97,63 +100,51 @@ export class Board<T> extends Array<Array<Array<T>>>{
         )
     }
 
-    public next(piece: Piece<number>): Board<number> {
-        const board = this.copy();
+    public next(piece: Piece<number>): Board<number>[] {
+        let board = this.copy() as Board<number>;
         board.set(piece);
-        this.log('place', piece);
-        let fp: Piece<number>[] = [];
-        let sp: Piece<number>[] = [];
+        const boardArray: Board<number>[] = [board];
+        console.log('place', piece);
+        let l: Piece<number>[] = [];
         do {
-            const lp = board.legalPieces();
-            fp = board.countBelow(v => v == Constants.playerId.first).where(p => lp.get(p.position) && p.value >= 3);
-            sp = board.countBelow(v => v == Constants.playerId.second).where(p => lp.get(p.position) && p.value >= 3);
-
-            this.consecutivePlace(board, fp, Constants.playerId.first)
-            this.consecutivePlace(board, sp, Constants.playerId.second)
-        } while (fp.length + sp.length > 0)
-        return board;
-    }
-
-    private consecutivePlace(board: Board<number>, plcArray: Piece<number>[], player: number) {
-        plcArray.forEach(({ position: pos }) => {
-            if (!board.isWin(player)) {
-                this.log(board.count(p => p.value == player), board.maxStones);
-
-                const p = { position: pos, value: player };
-                board.set(p);
-                this.log('place', p);
-            }
-        });
-
-        if (board.isWin(player)) { plcArray.splice(0) }
-    }
-    private log(...data: any[]) {
-        if (!this.background) { console.log(...data); }
+            const fp = board.countBelow(v => v == Constants.playerId.first).mapPiece(p => p.value >= 3)
+            const sp = board.countBelow(v => v == Constants.playerId.second).mapPiece(p => p.value >= 3)
+            l = fp.merge(sp, (v1, v2) =>
+                v1 ? Constants.playerId.first :
+                    v2 ? Constants.playerId.second :
+                        0
+            ).merge(board.legalPieces(), (v1, v2) => v2 ? v1 : 0)
+                .where(({ value: v }) => v != 0)
+                .map(p => {
+                    board = board.copy();
+                    board.set(p);
+                    boardArray.push(board);
+                    return p
+                });
+        } while (l.length > 0)
+        return boardArray
     }
 }
 
-class GameRecord {
+export class GameRecord {
     private size: number = Constants.defaultSize;
     private moves: Piece<number>[] = [];
     private record: Array<Board<number>> = [];
     public length: number = 0;
     constructor(size: number, moves?: Piece<number>[]) {
         this.size = size;
-        if (moves == null) {
-            this.record.push(this.initialBoard());
-        } else {
-            this.record.push(this.initialBoard(true));
+        this.record.push(this.initialBoard());
+        if (moves != null) {
             this.moves = moves;
             this.moves.forEach((p, i) => {
-                this.record.push(this.record[i].next(p))
+                this.record.push(this.record[i].next(p).at(-1) as Board<number>)
             });
-            this.record.forEach(v => v.background = false);
         }
         this.length = this.record.length;
     }
 
-    private initialBoard(background: boolean = false) {
-        const board = new Board<number>(background,
+    private initialBoard() {
+        const board = new Board<number>(
             ...new Array<number>(this.size).fill(0).map((_, i) =>
                 new Array<Array<number>>(i + 1).fill([0]).map(() =>
                     new Array<number>(i + 1).fill(0)
@@ -178,9 +169,10 @@ class GameRecord {
         this.moves.push(action);
 
         this.record.splice(movesNum);
-        this.record[movesNum] = this.record[movesNum - 1].next(action);
+        const boardArray = this.record[movesNum - 1].next(action);
+        this.record[movesNum] = boardArray.at(-1) as Board<number>;
         this.length = this.record.length;
-        return this.record[movesNum]
+        return boardArray
     }
 
     public exportData() {
@@ -188,29 +180,17 @@ class GameRecord {
         return Code64.encodeFromArray(arr)
     }
 
-    public importData(ciphertext: string): { size: number, moves: Piece<number>[] } {
-        // const arr = fromJSONtoArray<number>(json);
+    static importData(ciphertext: string): GameRecord {
         const arr = Code64.decodeToArray(ciphertext);
         const size = arr.shift() as number
-        let moves: Piece<number>[] = [];
-        if (size != this.size || arr.length % 4 != 0) {
-            const message = 'Invalid Data!'
-            console.log(message);
-            alert(message);
-            console.log('size', size);
-
-            moves = [];
-        } else {
-            moves = arrayDevide(arr, 4).map(a => ({ position: { i: a[0], j: a[1], k: a[2] }, value: a[3] }))
-        }
-
-        return { size: size, moves: moves }
+        const moves = arrayDevide(arr, 4).map(a => ({ position: { i: a[0], j: a[1], k: a[2] }, value: a[3] }))
+        return new GameRecord(size, moves)
     }
 }
 
 export class MosaicGame {
-    private scene: MosaicScene;
-    private gameRecord: GameRecord;
+    public scene: MosaicScene;
+    public gameRecord: GameRecord;
     private movesNum: number = 0;
     public board: Board<number>;
     constructor(scene: MosaicScene) {
@@ -227,10 +207,11 @@ export class MosaicGame {
         if (this.board.isDone()) { return }
         this.movesNum += 1;
         const player = this.movesNum % 2 == 1 ? Constants.playerId.first : Constants.playerId.second;
-        const action: Piece<number> = { position: pos, value: player }
-        this.board = this.gameRecord.move(this.movesNum, action)
+        const action: Piece<number> = { position: pos, value: player };
+        const boardArray = this.gameRecord.move(this.movesNum, action);
+        this.board = boardArray.at(-1) as Board<number>;
 
-        this.scene.render();
+        this.scene.render(boardArray);
     }
 
     public prev() {
@@ -251,6 +232,19 @@ export class MosaicGame {
 
         this.board = this.gameRecord.get(this.movesNum);
 
+        this.scene.render();
+    }
+
+    public exportData(): string {
+        console.log('save');
+        return compress(this.gameRecord.exportData())
+    }
+
+    public importData(data: string) {
+        console.log('load');
+        this.movesNum = 0;
+        this.gameRecord = GameRecord.importData(decompress(data));
+        this.board = this.gameRecord.get(this.movesNum);
         this.scene.render();
     }
 }

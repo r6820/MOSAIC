@@ -1,5 +1,5 @@
 import Phaser from "phaser";
-import { MosaicScene, Constants } from "./";
+import { MosaicScene, phaserConstants as Constants } from "./";
 
 const mosaicScene = new MosaicScene()
 

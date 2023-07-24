@@ -2,18 +2,21 @@ import { Component, ReactNode } from "react";
 import { Button } from "..";
 
 type Props = {
-    onclickPrev: () => void;
-    onclickNext: () => void 
+    buttons: Array<{
+        id: string,
+        label: string,
+        onClick: () => void
+    }>
 }
 
 
-export class PrevNext extends Component<Props> {
+export class ButtonContainer extends Component<Props> {
     render(): ReactNode {
+        const items = this.props.buttons.map((items) => <Button key={items.id} {...items} />);
         return (
-            <>
-                <Button id='prev-button' label='<prev' onClick={this.props.onclickPrev} />
-                <Button id='next-button' label='next>' onClick={this.props.onclickNext} />
-            </>
+            <div>
+                {items}
+            </div>
         );
     }
 }

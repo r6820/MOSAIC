@@ -1,5 +1,6 @@
 import Phaser from "phaser";
-import { Board, MosaicGame, Constants, Position } from "../";
+import { Board, MosaicGame, phaserConstants as Constants, Position } from "../";
+import { sleep } from "../../common";
 
 export class MosaicScene extends Phaser.Scene {
     public mosaicGame: MosaicGame;
@@ -7,6 +8,7 @@ export class MosaicScene extends Phaser.Scene {
     private pointText!: Phaser.GameObjects.Text;
     public size: number = Constants.defaultSize;
     public stoneSize: number = Constants.boardLength / this.size;
+    public board: Board<number>;
 
     constructor(size?: number) {
         super({ key: 'mosaicScene', active: true });
@@ -15,10 +17,11 @@ export class MosaicScene extends Phaser.Scene {
             this.stoneSize = Constants.boardLength / this.size;
         }
         this.mosaicGame = new MosaicGame(this);
+        this.board = this.mosaicGame.board;
     }
 
     preload() {
-        this.load.setBaseURL("./public");
+        // this.load.setBaseURL("./public");
     }
 
     create() {
@@ -32,9 +35,20 @@ export class MosaicScene extends Phaser.Scene {
         this.render();
     }
 
-    public render() {
-        this.stoneBoard.forEachPiece(({ value: { stone, hole } }) => { stone.render(); hole.render() })
-        this.pointText.setText(`${this.mosaicGame.getPoint(Constants.playerId.first)}:${this.mosaicGame.getPoint(Constants.playerId.second)}`)
+    public async render(boardArray?: Board<number>[]) {
+        this.setInteractive(false);
+        this.updateBoard(boardArray?.shift() || this.mosaicGame.board);
+        for (const board of (boardArray || [])) {
+            await sleep(Constants.delayTime);
+            this.updateBoard(board);
+        }
+        this.setInteractive(true);
+    }
+
+    private updateBoard(board: Board<number>) {
+        this.board = board;
+        this.stoneBoard.forEachPiece(({ value: { stone, hole } }) => { stone.render(); hole.render() });
+        this.pointText.setText(`${this.mosaicGame.getPoint(Constants.playerId.first)}:${this.mosaicGame.getPoint(Constants.playerId.second)}`);
     }
 
     public stonePosition(action: Position) {
@@ -44,18 +58,24 @@ export class MosaicScene extends Phaser.Scene {
             y: (k + (this.size - i) / 2) * this.stoneSize + Constants.offset.y
         }
     }
+
+    public setInteractive(value: boolean) {
+        this.stoneBoard.forEachPiece(({ value: { hole } }) => {
+            hole.setInteractive(value);
+        })
+    }
 }
 
 
 class Stone extends Phaser.GameObjects.Container {
     private pos: Position;
-    private mosaicGame: MosaicGame;
+    private mosaicScene: MosaicScene;
     private rim: Phaser.GameObjects.Arc;
     private mid: Phaser.GameObjects.Arc;
     constructor(scene: MosaicScene, pos: Position) {
         const { x, y } = scene.stonePosition(pos);
         super(scene, x, y);
-        this.mosaicGame = scene.mosaicGame;
+        this.mosaicScene = scene;
         this.pos = pos;
         scene.add.existing(this);
         this.setDepth(scene.size - pos.i);
@@ -64,9 +84,8 @@ class Stone extends Phaser.GameObjects.Container {
         this.add([this.rim, this.mid]);
         this.render();
     }
-
     public render() {
-        const val = this.mosaicGame.board.get(this.pos);
+        const val = this.mosaicScene.board.get(this.pos);
         if (val == 0) {
             this.setVisible(false);
         } else {
@@ -76,16 +95,14 @@ class Stone extends Phaser.GameObjects.Container {
     }
 }
 
-class Hole extends Phaser.GameObjects.Container {
+class Hole {
     private pos: Position;
-    private mosaicGame: MosaicGame;
+    private mosaicScene: MosaicScene;
     private hole: Phaser.GameObjects.Arc;
     constructor(scene: MosaicScene, pos: Position) {
         const { x, y } = scene.stonePosition(pos);
-        super(scene, x, y);
-        this.mosaicGame = scene.mosaicGame;
+        this.mosaicScene = scene;
         this.pos = pos;
-        scene.add.existing(this);
         this.hole = scene.add.circle(x, y, scene.stoneSize / 2 * Constants.holeRatio, Constants.colors.hole);
         this.hole.on('pointerdown', () => {
             console.log('click', this.hole.x, this.hole.y, pos);
@@ -94,14 +111,17 @@ class Hole extends Phaser.GameObjects.Container {
         this.hole.setDepth(scene.size * 2);
         this.render();
     }
+
     public render() {
-        const val = this.mosaicGame.board.legalPieces().get(this.pos);
-        if (val) {
+        const value = this.mosaicScene.board.legalPieces().get(this.pos);
+        this.hole.setVisible(value);
+    }
+
+    public setInteractive(value: boolean) {
+        if (value && this.mosaicScene.board.legalPieces().get(this.pos)) {
             this.hole.setInteractive();
         } else {
             this.hole.disableInteractive();
         }
-        this.hole.setVisible(val);
     }
-
 }
