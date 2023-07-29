@@ -13,7 +13,7 @@ export class Board<T> extends Array<Array<Array<T>>>{
                 : a / 2
     }
 
-    private isWin(player: number): boolean {
+    public isWin(player: number): boolean {
         return this.count(p => p.value == player) >= this.maxStones
     }
 
@@ -100,11 +100,14 @@ export class Board<T> extends Array<Array<Array<T>>>{
         )
     }
 
+    public legalActions(): Position[]{
+        return this.legalPieces().where(({value})=>value).map(({position})=>position)
+    }
+
     public next(piece: Piece<number>): Board<number>[] {
         let board = this.copy() as Board<number>;
         board.set(piece);
         const boardArray: Board<number>[] = [board];
-        console.log('place', piece);
         let l: Piece<number>[] = [];
         do {
             const fp = board.countBelow(v => v == Constants.playerId.first).mapPiece(p => p.value >= 3)
@@ -123,6 +126,18 @@ export class Board<T> extends Array<Array<Array<T>>>{
                 });
         } while (l.length > 0)
         return boardArray
+    }
+
+    private nextOne(piece: Piece<number>): Board<number> {
+        return this.next(piece).at(-1) as Board<number>
+    }
+
+    public nextAll(value: number): Board<number>[] {
+        return this.legalPieces().where(({ value }) => value).map(({ position }) => this.nextOne({ position, value }))
+    }
+
+    public flip() {
+        return this.mapPiece(({ value }) => value == Constants.playerId.first ? Constants.playerId.second : Constants.playerId.first)
     }
 }
 
@@ -176,14 +191,14 @@ export class GameRecord {
     }
 
     public exportData() {
-        const arr = [this.size, ...this.moves.map(({ position: { i, j, k }, value }) => [i, j, k, value])].flat()
+        const arr = [this.size, ...this.moves.map(({ position: { i, j, k } }) => [i, j, k])].flat();
         return Code64.encodeFromArray(arr)
     }
 
     static importData(ciphertext: string): GameRecord {
         const arr = Code64.decodeToArray(ciphertext);
-        const size = arr.shift() as number
-        const moves = arrayDevide(arr, 4).map(a => ({ position: { i: a[0], j: a[1], k: a[2] }, value: a[3] }))
+        const size = arr.shift() as number;
+        const moves = arrayDevide(arr, 3).map((a, i) => ({ position: { i: a[0], j: a[1], k: a[2] }, value: i % 2 == 0 ? Constants.playerId.first : Constants.playerId.second }));
         return new GameRecord(size, moves)
     }
 }
@@ -209,6 +224,7 @@ export class MosaicGame {
         const player = this.movesNum % 2 == 1 ? Constants.playerId.first : Constants.playerId.second;
         const action: Piece<number> = { position: pos, value: player };
         const boardArray = this.gameRecord.move(this.movesNum, action);
+        console.log('place', action);
         this.board = boardArray.at(-1) as Board<number>;
 
         this.scene.render(boardArray);

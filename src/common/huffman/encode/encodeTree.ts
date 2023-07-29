@@ -1,4 +1,4 @@
-import { treeArray } from "../global.d";
+import { treeArray } from "../global";
 import { convertSymbolToBits, padding } from "../common/convert.js";
 
 export const encodeTree = (

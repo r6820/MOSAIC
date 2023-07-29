@@ -1,4 +1,4 @@
-import { occurrenceArray, treeArray } from "../global.d";
+import { occurrenceArray, treeArray } from "../global";
 
 const escapeRegex = (str: string): string => {
   return str.replace(/[-\/\\^$*+?.()|\[\]{}]/g, "\\$&");

@@ -1,4 +1,4 @@
-import { bitsTable } from "../global.d";
+import { bitsTable } from "../global";
 
 export const generateResultBits = (
   plane: string,

@@ -12,14 +12,13 @@
     "deploy": "gh-pages -d dist"
   },
   "dependencies": {
+    "@tensorflow/tfjs": "^4.9.0",
     "animate.css": "^4.1.1",
-    "crypto-ts": "^1.0.2",
     "gh-pages": "^5.0.0",
     "phaser": "^3.60.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "sweetalert2": "^11.7.19",
-    "zlib": "^1.0.5"
+    "sweetalert2": "^11.7.19"
   },
   "devDependencies": {
     "@types/react": "^18.2.14",

@@ -2,7 +2,7 @@ import { bitsTable, dividedObj, rebuiltTreeArray } from "../global.d";
 import { convertBitsToSymbol } from "../common/convert";
 import { generateBitsTableFromRebuiltTreeArray } from "../common/generateBitsTable";
 
-const rebuildHuffmanTree = ( bits: string, resultArray: rebuiltTreeArray ): string => {
+export const rebuildHuffmanTree = ( bits: string, resultArray: rebuiltTreeArray ): string => {
   if (bits === "") return bits;
   const firstBits: string = bits.slice(0, 1);
   bits = bits.slice(1);
@@ -43,7 +43,7 @@ const parseBits = (bits: string, bitsTable: bitsTable): string => {
   return result;
 };
 
-const spliceString = (string: string, divisionNumber: number): dividedObj => {
+export const spliceString = (string: string, divisionNumber: number): dividedObj => {
   const spliced: string = string.slice(0, divisionNumber);
   const remaining: string = string.slice(divisionNumber);
   return { spliced, remaining };

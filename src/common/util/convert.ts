@@ -1,6 +1,6 @@
 import { Code64 } from "..";
 import { encodeHuffman, decodeHuffman } from "..";
-import { AES, enc } from "crypto-ts";
+// import { AES, enc } from "crypto-ts";
 
 export function textDevide(text: string, length: number): string[] {
     const arr = [...text];
@@ -25,9 +25,9 @@ export function decompress(cip: string) {
     return decodeHuffman(bi)
 }
 
-export function createAES(key: string) {
-    return {
-        encoder: (plaintext: string) => AES.encrypt(plaintext, key).toString(),
-        decoder: (cipher: string) => AES.decrypt(cipher, key).toString(enc.Utf8)
-    }
-}
+// export function createAES(key: string) {
+//     return {
+//         encoder: (plaintext: string) => AES.encrypt(plaintext, key).toString(),
+//         decoder: (cipher: string) => AES.decrypt(cipher, key).toString(enc.Utf8)
+//     }
+// }
