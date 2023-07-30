@@ -5,7 +5,7 @@ export const width = 800;
 export const height = 800;
 
 export const boardLength: number = 700;
-export const indicatorWidth: number =20;
+export const indicatorWidth: number = 20;
 
 export const stoneRatio: number = 0.9;
 export const holeRatio: number = 0.36;

@@ -213,12 +213,12 @@ export class MosaicGame {
         this.gameRecord = new GameRecord(this.size);
         this.board = this.gameRecord.get(this.movesNum);
         const human = async () => {
-            console.log('=== Player turn ===');
+            console.log(' ===== Player turn ===== ');
             this.scene.setInteractive(true);
         }
         const ai = async () => {
             this.action = this.action || await loadModel(this.size);
-            console.log('=== AI turn ===');
+            console.log(' ===== AI turn ===== ');
             const startTime = Date.now();
             this.scene.setInteractive(false);
             const pos = this.action(this.movesNum % 2 == 0 ? this.board : this.board.flip());
