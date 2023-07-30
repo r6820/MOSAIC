@@ -1,4 +1,4 @@
-import { Action, Board, GameRecord } from '../..';
+import { Action, Board } from '../..';
 import { playerId } from '../Constants';
 import { tensor, Tensor, GraphModel } from '@tensorflow/tfjs';
 import { argmax, sum } from '../../../common';
