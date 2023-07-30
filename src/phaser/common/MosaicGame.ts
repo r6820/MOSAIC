@@ -1,6 +1,5 @@
-import { MosaicScene, phaserConstants as Constants, Position, Piece } from "../";
-import { arrayDevide, compress, decompress } from "../../common";
-import { Code64 } from "../../common";
+import { MosaicScene, Position, Piece, loadModel, Action, playerId, defaultSize } from "../";
+import { arrayDevide, compress, decompress, Code64 } from "../../common";
 
 
 export class Board<T> extends Array<Array<Array<T>>>{
@@ -18,7 +17,7 @@ export class Board<T> extends Array<Array<Array<T>>>{
     }
 
     public isDone(): boolean {
-        return this.isWin(Constants.playerId.first) || this.isWin(Constants.playerId.second)
+        return this.isWin(playerId.first) || this.isWin(playerId.second)
     }
 
     public reverse(): Board<T> {
@@ -85,7 +84,7 @@ export class Board<T> extends Array<Array<Array<T>>>{
         return this.mapPiece(({ value: v }) => v);
     }
 
-    private merge<U, V>(otherBoard: Board<U>, mergeFunction: (v1: T, v2: U) => V): Board<V> {
+    public merge<U, V>(otherBoard: Board<U>, mergeFunction: (v1: T, v2: U) => V): Board<V> {
         return this.mapPiece(({ position: pos, value: v }) => mergeFunction(v, otherBoard.get(pos)))
     }
 
@@ -100,61 +99,55 @@ export class Board<T> extends Array<Array<Array<T>>>{
         )
     }
 
-    public legalActions(): Position[]{
-        return this.legalPieces().where(({value})=>value).map(({position})=>position)
+    public legalActions(): Position[] {
+        return this.legalPieces().where(({ value }) => value).map(({ position }) => position)
     }
 
-    public next(piece: Piece<number>): Board<number>[] {
-        let board = this.copy() as Board<number>;
+    public next(piece: Piece<number>): [Board<number>, Piece<number>[]] {
+        const board = this.copy() as Board<number>;
         board.set(piece);
-        const boardArray: Board<number>[] = [board];
+        const pieceArray: Piece<number>[] = [piece];
         let l: Piece<number>[] = [];
         do {
-            const fp = board.countBelow(v => v == Constants.playerId.first).mapPiece(p => p.value >= 3)
-            const sp = board.countBelow(v => v == Constants.playerId.second).mapPiece(p => p.value >= 3)
+            const fp = board.countBelow(v => v == playerId.first).mapPiece(p => p.value >= 3)
+            const sp = board.countBelow(v => v == playerId.second).mapPiece(p => p.value >= 3)
             l = fp.merge(sp, (v1, v2) =>
-                v1 ? Constants.playerId.first :
-                    v2 ? Constants.playerId.second :
+                v1 ? playerId.first :
+                    v2 ? playerId.second :
                         0
             ).merge(board.legalPieces(), (v1, v2) => v2 ? v1 : 0)
                 .where(({ value: v }) => v != 0)
                 .map(p => {
-                    board = board.copy();
                     board.set(p);
-                    boardArray.push(board);
+                    pieceArray.push(p);
                     return p
                 });
         } while (l.length > 0)
-        return boardArray
-    }
-
-    private nextOne(piece: Piece<number>): Board<number> {
-        return this.next(piece).at(-1) as Board<number>
+        return [board, pieceArray]
     }
 
     public nextAll(value: number): Board<number>[] {
-        return this.legalPieces().where(({ value }) => value).map(({ position }) => this.nextOne({ position, value }))
+        return this.legalPieces().where(({ value }) => value).map(({ position }) => this.next({ position, value })[0])
     }
 
     public flip() {
-        return this.mapPiece(({ value }) => value == Constants.playerId.first ? Constants.playerId.second : Constants.playerId.first)
+        return this.mapPiece(({ value }) => value == playerId.first ? playerId.second : value == playerId.second ? playerId.first : value)
+
     }
 }
 
 export class GameRecord {
-    private size: number = Constants.defaultSize;
-    private moves: Piece<number>[] = [];
+    private size: number;
+    private moves: Piece<number>[];
     private record: Array<Board<number>> = [];
     public length: number = 0;
-    constructor(size: number, moves?: Piece<number>[]) {
+    constructor(size: number = defaultSize, moves: Piece<number>[] = []) {
         this.size = size;
         this.record.push(this.initialBoard());
-        if (moves != null) {
-            this.moves = moves;
-            this.moves.forEach((p, i) => {
-                this.record.push(this.record[i].next(p).at(-1) as Board<number>)
-            });
-        }
+        this.moves = moves;
+        this.moves.forEach((p, i) => {
+            this.record.push(this.record[i].next(p)[0]);
+        });
         this.length = this.record.length;
     }
 
@@ -169,7 +162,7 @@ export class GameRecord {
         if (this.size % 2 == 1) {
             board.set({
                 position: { i: this.size - 1, j: (this.size - 1) / 2, k: (this.size - 1) / 2 },
-                value: Constants.playerId.neutral
+                value: playerId.neutral
             })
         }
 
@@ -180,54 +173,80 @@ export class GameRecord {
         return this.record[num]
     }
 
-    public move(movesNum: number, action: Piece<number>) {
+    public move(movesNum: number, action: Piece<number>): [Board<number>, Piece<number>[]] {
         this.moves.push(action);
-
         this.record.splice(movesNum);
-        const boardArray = this.record[movesNum - 1].next(action);
-        this.record[movesNum] = boardArray.at(-1) as Board<number>;
+        const [board, pieceArray] = this.record[movesNum - 1].next(action);
+        this.record[movesNum] = board;
         this.length = this.record.length;
-        return boardArray
+        return [board, pieceArray]
     }
 
     public exportData() {
         const arr = [this.size, ...this.moves.map(({ position: { i, j, k } }) => [i, j, k])].flat();
+        
         return Code64.encodeFromArray(arr)
     }
 
-    static importData(ciphertext: string): GameRecord {
+    public importData(ciphertext: string): GameRecord {
         const arr = Code64.decodeToArray(ciphertext);
         const size = arr.shift() as number;
-        const moves = arrayDevide(arr, 3).map((a, i) => ({ position: { i: a[0], j: a[1], k: a[2] }, value: i % 2 == 0 ? Constants.playerId.first : Constants.playerId.second }));
+        const moves = arrayDevide(arr, 3).map((a, i) => ({ position: { i: a[0], j: a[1], k: a[2] }, value: i % 2 == 0 ? playerId.first : playerId.second }));
+        
         return new GameRecord(size, moves)
     }
 }
 
 export class MosaicGame {
+    private isAI: { first: boolean, second: boolean };
+    public size: number;
     public scene: MosaicScene;
     public gameRecord: GameRecord;
     private movesNum: number = 0;
+    public player: number = playerId.first;
     public board: Board<number>;
-    constructor(scene: MosaicScene) {
-        this.scene = scene;
-        this.gameRecord = new GameRecord(this.scene.size);
+    private action!: Action;
+    public turn: () => Promise<void> = async () => { };
+    constructor([FPisAI, SPisAI]: [boolean, boolean] = [false, false], size: number = defaultSize) {
+        this.isAI = { first: FPisAI, second: SPisAI };
+        this.size = size;
+        this.gameRecord = new GameRecord(this.size);
         this.board = this.gameRecord.get(this.movesNum);
+        const human = async () => {
+            console.log('=== Player turn ===');
+            this.scene.setInteractive(true);
+        }
+        const ai = async () => {
+            this.action = this.action || await loadModel(this.size);
+            console.log('=== AI turn ===');
+            const startTime = Date.now();
+            this.scene.setInteractive(false);
+            const pos = this.action(this.movesNum % 2 == 0 ? this.board : this.board.flip());
+            const endTime = Date.now();
+            console.log('predict:', endTime - startTime, 'ms');
+            console.log('position', pos);
+            await this.move(pos);
+        }
+        this.turn = async () => {
+            ((this.movesNum % 2 == 0 ? FPisAI : SPisAI) ? ai : human)();
+        }
+        this.scene = new MosaicScene(this);
     }
 
     public getPoint(player: number): number {
         return this.board.count(p => p.value == player)
     }
 
-    public move(pos: Position) {
+    public async move(pos: Position) {
+        this.scene.setInteractive(false);
         if (this.board.isDone()) { return }
+        const action: Piece<number> = { position: pos, value: this.player };
         this.movesNum += 1;
-        const player = this.movesNum % 2 == 1 ? Constants.playerId.first : Constants.playerId.second;
-        const action: Piece<number> = { position: pos, value: player };
-        const boardArray = this.gameRecord.move(this.movesNum, action);
-        console.log('place', action);
-        this.board = boardArray.at(-1) as Board<number>;
-
-        this.scene.render(boardArray);
+        this.player = this.movesNum % 2 == 0 ? playerId.first : playerId.second;
+        const [board, pieceArray] = this.gameRecord.move(this.movesNum, action);
+        this.board = board;
+        this.scene.render(pieceArray).then(() => { this.turn(); });
+        // this.turn();
     }
 
     public prev() {
@@ -235,9 +254,14 @@ export class MosaicGame {
         console.log('prev');
 
         this.movesNum -= 1;
-
-        this.board = this.gameRecord.get(this.movesNum);
-        this.scene.render();
+        this.player = this.movesNum % 2 == 0 ? playerId.first : playerId.second;
+        if (this.isAI[this.movesNum % 2 == 0 ? 'first' : 'second']) {
+            this.prev();
+        } else {
+            this.board = this.gameRecord.get(this.movesNum);
+            this.scene.allRerender();
+            this.turn();
+        }
     }
 
     public next() {
@@ -245,10 +269,14 @@ export class MosaicGame {
         console.log('next');
 
         this.movesNum += 1;
-
-        this.board = this.gameRecord.get(this.movesNum);
-
-        this.scene.render();
+        this.player = this.movesNum % 2 == 0 ? playerId.first : playerId.second;
+        if (this.isAI[this.movesNum % 2 == 0 ? 'first' : 'second']) {
+            this.next()
+        } else {
+            this.board = this.gameRecord.get(this.movesNum);
+            this.scene.allRerender();
+            this.turn();
+        }
     }
 
     public exportData(): string {
@@ -259,8 +287,7 @@ export class MosaicGame {
     public importData(data: string) {
         console.log('load');
         this.movesNum = 0;
-        this.gameRecord = GameRecord.importData(decompress(data));
+        this.gameRecord = this.gameRecord.importData(decompress(data));
         this.board = this.gameRecord.get(this.movesNum);
-        this.scene.render();
     }
 }

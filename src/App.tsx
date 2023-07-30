@@ -12,7 +12,7 @@ function saveData() {
   inputSwal('Save', (text) => {
     const filename = `${text || '_temp'}.${ext}`
     localStorage.setItem(filename, mosaicGame.exportData());
-  }, () => { mosaicGame.scene.render() });
+  }, () => { mosaicGame.scene.setInteractive(true); });
 }
 
 function loadData() {
@@ -22,13 +22,13 @@ function loadData() {
   const keyNames: Record<string, string> = nameArray.reduce((obj, val, i) => ({ ...obj, [i]: val }), {});
   selectSwal('Load', keyNames, (index) => {
     const m = localStorage.getItem(`${keyNames[index] || '_temp'}.${ext}`);
-    console.log(index, m);
+    // console.log(index, m);
     if (m != null) {
       mosaicGame.importData(m);
     } else {
       throw new Error('error')
     }
-  }, () => { mosaicGame.scene.render() });
+  }, () => { mosaicGame.scene.allRerender(); });
 }
 
 function removeData() {
@@ -38,7 +38,7 @@ function removeData() {
   const keyNames: Record<string, string> = nameArray.reduce((obj, val, i) => ({ ...obj, [i]: val }), {});
   selectSwal('Remove', keyNames, (index) => {
     localStorage.removeItem(`${keyNames[index]}.${ext}`);
-  }, () => { mosaicGame.scene.render() });
+  }, () => { mosaicGame.scene.setInteractive(true); });
 }
 
 function App() {

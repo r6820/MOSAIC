@@ -1,13 +1,14 @@
-import { Board } from '../MosaicGame';
-import { phaserConstants as Constants } from '../Constants';
+import { Action, Board, GameRecord } from '../..';
+import { playerId } from '../Constants';
 import { tensor, Tensor, GraphModel } from '@tensorflow/tfjs';
-import { Position } from '../types';
 import { argmax, sum } from '../../../common';
+import * as tf from '@tensorflow/tfjs';
 
-const PV_EVAL_NUM = 10
+
+const PV_EVAL_NUM = 100
 
 function convertToTensor(board: Board<number>): Tensor {
-    const players = [Constants.playerId.first, Constants.playerId.second]
+    const players = [playerId.first, playerId.second]
     return tensor([players.map(p => (board.mapPiece(({ value: v }) => Number(v == p)) as number[][][]).map(v1 =>
         [...v1, ...new Array<Array<number>>(board.length - v1.length).fill([0]).map(() => new Array<number>(v1.length).fill(0))].map(v2 =>
             [...v2, ...new Array<number>(board.length - v2.length).fill(0)]
@@ -16,14 +17,17 @@ function convertToTensor(board: Board<number>): Tensor {
 }
 
 function predict(model: GraphModel, board: Board<number>): [number, number[]] {
-    const size = board.length
-    const [t1, t2] = model.predict(convertToTensor(board)) as [Tensor, Tensor];
-    const value = (t1.arraySync() as number[][])[0][0];
-    let policies = (t2.arraySync() as number[][])[0];
-    policies = board.legalActions().map(({ i, j, k }) => policies[i * size ** 2 + j * size + k]);
-    const _sum = sum(policies);
-    policies = policies.map(v => v / _sum);
-    return [value, policies]
+    const size = board.length;
+    return tf.tidy(() => {
+        const boardTensor = convertToTensor(board);
+        const [t1, t2] = model.predict(boardTensor) as [Tensor, Tensor];
+        const value = (t1.arraySync() as number[][])[0][0];
+        let policies = (t2.arraySync() as number[][])[0];
+        policies = board.legalActions().map(({ i, j, k }) => policies[i * size ** 2 + j * size + k]);
+        const _sum = sum(policies);
+        policies = policies.map(v => v / _sum);
+        return [value, policies]
+    })
 }
 
 class MCTSNode {
@@ -40,15 +44,15 @@ class MCTSNode {
     }
 
     public evaluate(model: GraphModel) {
-        const fp = this.board.isWin(Constants.playerId.first);
-        const sp = this.board.isWin(Constants.playerId.second);
+        const fp = this.board.isWin(playerId.first);
+        const sp = this.board.isWin(playerId.second);
         let value = 0;
         let policies: number[] = [];
         if (fp || sp) {
             value = fp ? (sp ? 0 : 1) : -1;
         } else if (this.childNodes.length == 0) {
             [value, policies] = predict(model, this.board);
-            this.childNodes = this.board.nextAll(Constants.playerId.first).map((v, i) => new MCTSNode(v.flip(), policies[i]));
+            this.childNodes = this.board.nextAll(playerId.first).map((v, i) => new MCTSNode(v.flip(), policies[i]));
         } else {
             value = -this.nextChildNode().evaluate(model);
         }
@@ -75,9 +79,19 @@ function pvMCTSScores(model: GraphModel, board: Board<number>): number[] {
     return rootNode.childNodes.map(node => node.n)
 }
 
-export function pvMCTSAction(model: GraphModel): (board: Board<number>) => Position {
+function pvMCTSAction(model: GraphModel): Action {
     return (board: Board<number>) => {
         const scores = pvMCTSScores(model, board);
         return board.legalActions()[argmax(scores)]
     }
+}
+
+export async function loadModel(size: number, prepareBoard?: Board<number>): Promise<Action> {
+    const startTime = Date.now();
+    const model = await tf.loadGraphModel(`/tfjs_models/size_${size}/model.json`);
+    const action = pvMCTSAction(model);
+    if (prepareBoard) { action(prepareBoard); }
+    const endTime = Date.now();
+    console.log('loadModel:', endTime - startTime, 'ms');
+    return action
 }

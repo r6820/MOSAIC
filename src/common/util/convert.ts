@@ -14,15 +14,34 @@ export function arrayDevide<T>(arr: T[], length: number): T[][] {
 }
 
 export function compress(text: string) {
+    if (text.length == 0) { return '1'}
+    if (text.length == 1) { return '1'+text}
+    if ([...text].reduce((p, c) => p && c==text[0], true)){
+        return '1'+text[0]+text.length.toString()
+    }
+
     const bi = encodeHuffman(text);
     const c = Code64.encodeFromString(bi)
-    return c
+
+    return '0' + c
 }
 
 export function decompress(cip: string) {
-    const r = parseInt(cip.slice(-1) as string, 10);
-    const bi = Code64.decodeToString(cip.slice(0, -1), r);
-    return decodeHuffman(bi)
+    const [f, cipherText] = [cip.slice(0,1), cip.slice(1)]
+
+    if (f=='1'){
+        if (cipherText.length==0){
+            return ''
+        } else if (cipherText.length==1){
+            return cipherText
+        }else{
+            return cipherText.slice(0, 1).repeat(parseInt(cipherText.slice(1)))
+        }
+    }
+
+    const bi = Code64.decodeToString(cipherText);
+    const text = decodeHuffman(bi);
+    return text
 }
 
 // export function createAES(key: string) {

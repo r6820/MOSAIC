@@ -12,7 +12,7 @@
     "deploy": "gh-pages -d dist"
   },
   "dependencies": {
-    "@tensorflow/tfjs": "^4.9.0",
+    "@tensorflow/tfjs-node": "^4.9.0",
     "animate.css": "^4.1.1",
     "gh-pages": "^5.0.0",
     "phaser": "^3.60.0",

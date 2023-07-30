@@ -1,16 +1,16 @@
 import Phaser from "phaser";
-import { MosaicScene, phaserConstants as Constants } from "./";
+import {MosaicGame, colors, height, width } from "./";
 
-const mosaicScene = new MosaicScene()
+export const mosaicGame = new MosaicGame([false, true]);
 
-export const mosaicGame = mosaicScene.mosaicGame
+const mosaicScene = mosaicGame.scene;
 
 const config: Phaser.Types.Core.GameConfig = {
   type: Phaser.AUTO,
   parent: 'phaser-container',
-  backgroundColor: Constants.colors.bg,
-  width: Constants.width,
-  height: Constants.height,
+  backgroundColor: colors.bg,
+  width: width,
+  height: height,
   scene: [mosaicScene,],
 };
 

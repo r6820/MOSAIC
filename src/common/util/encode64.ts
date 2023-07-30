@@ -33,16 +33,18 @@ export class Code64 {
 
     static encodeFromString(input: string): string {
         const a = textDevide(input, 6);
-        const b = a.map(v => Code64.singleEncode(v))
-        return b.join('') + a[a.length - 1].length;
+        const b = a.map(v => Code64.singleEncode(v));
+        return a[a.length - 1].length + b.join('')
     }
-    static encodeFromArray(input: number[]): string {
-        return input.map(v => Code64.singleEncode(v)).join('')
-    }
-
-    static decodeToString(text: string, remain: number): string {
+    static decodeToString(bi: string): string {
+        const [r, text] = [bi.slice(0, 1), bi.slice(1)]
+        const remain = parseInt(r, 10);
         const textArray = [...text];
         return textArray.map((v, i, arr) => padding(i == arr.length - 1 ? remain : 6, Code64.singleDecode(v).toString(2))).join('')
+    }
+    
+    static encodeFromArray(input: number[]): string {
+        return input.map(v => Code64.singleEncode(v)).join('')
     }
     static decodeToArray(text: string): number[] {
         const textArray = [...text];
