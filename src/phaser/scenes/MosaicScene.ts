@@ -40,14 +40,17 @@ export class MosaicScene extends Phaser.Scene {
     public async render(pieceArray?: Piece<number>[]) {
         console.log('render');
         this.board = this.mosaicGame.board;
+        this.stoneBoard.forEachPiece(({ value: { hole } }) => {
+            hole.render();
+        });
         for (const { position } of this.prevPlace) {
-            const { stone, hole } = this.stoneBoard.get(position);
-            stone.render(); hole.render();
+            const { stone } = this.stoneBoard.get(position);
+            stone.render();
         }
         this.prevPlace = pieceArray || [];
         for (const { position } of this.prevPlace) {
-            const { stone, hole } = this.stoneBoard.get(position);
-            stone.render(true); hole.render();
+            const { stone } = this.stoneBoard.get(position);
+            stone.render(true);
             await sleep(delayTime);
         }
         const val = this.mosaicGame.player;

@@ -25,7 +25,7 @@ export const colors: Record<string, number> = {
     'bg': 0x119944,
     'frame': 0xdeb887,
     'hole': 0x333333,
-    'innactive': 0x555555,
+    'innactive': 0x444444,
     'rim': 0xffffff,
     'place': 0x225511,
     [`stone${playerId.neutral}`]: 0xbbbbbb,

@@ -88,7 +88,7 @@ function pvMCTSAction(model: GraphModel): Action {
 
 export async function loadModel(size: number, prepareBoard?: Board<number>): Promise<Action> {
     const startTime = Date.now();
-    console.log(import.meta.env.BASE_URL + `tfjs_models/size_${size}/model.json`);
+    // console.log(import.meta.env.BASE_URL + `tfjs_models/size_${size}/model.json`);
     
     const model = await tf.loadGraphModel(import.meta.env.BASE_URL + `tfjs_models/size_${size}/model.json`);
     const action = pvMCTSAction(model);
