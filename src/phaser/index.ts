@@ -1,5 +1,6 @@
 export * from './scenes/MosaicScene'
 export * from './common/MosaicGame'
+export * from './common/data/localStorage'
 export * from './common/Constants'
 export * from './common/types'
 export * from './common/AI/mcts'

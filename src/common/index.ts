@@ -5,6 +5,5 @@ export * from './util/arrayFunctions';
 export * from './util/json';
 export * from './util/convert';
 export * from './util/encode64';
-export * from './constants/Constants';
-export * from './swal/localStorage';
+export * from './swal/swal';
 export * from './util/sleep';

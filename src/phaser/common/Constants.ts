@@ -1,3 +1,5 @@
+export const ext:string = 'mof'
+
 export const defaultSize: number = 7;
 export const offset: { x: number, y: number } = { x: 50, y: 50 };
 
