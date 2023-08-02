@@ -1,5 +1,5 @@
-import { MosaicScene, Position, Piece, loadModel, Action, playerId, defaultSize } from "../";
-import { arrayDevide, compress, decompress, Code64 } from "../../common";
+import { MosaicScene, Position, Piece, loadModel, Action, playerId, defaultSize } from "@/phaser";
+import { arrayDevide, compress, decompress, Code64 } from "@/common";
 
 
 export class Board<T> extends Array<Array<Array<T>>>{

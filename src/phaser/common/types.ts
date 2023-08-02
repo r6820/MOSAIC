@@ -1,4 +1,4 @@
-import { Board } from "./MosaicGame";
+import { Board } from "@/phaser";
 
 export type Position = {
     i: number;

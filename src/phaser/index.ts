@@ -1,3 +1,4 @@
+export * from './main'
 export * from './scenes/MosaicScene'
 export * from './common/MosaicGame'
 export * from './common/data/localStorage'

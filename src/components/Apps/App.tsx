@@ -1,16 +1,19 @@
 import { useEffect } from 'react'
-import './App.css'
-import { mosaicGame, createPhaser } from './phaser/main'
-import { saveData, loadData, removeData } from './phaser'
-import { ButtonContainer } from './components/ui'
+import { createPhaser, MosaicGame, saveData, loadData, removeData } from '@/phaser'
+import { ButtonContainer } from '@/components'
 
+import '@/css/App.css'
+import '@/css/swal.css'
 import 'animate.css'
-import './css/swal.css'
 
 
+let mosaicGame: MosaicGame;
 
-function App() {
-  useEffect(createPhaser, []);
+export function App() {
+  useEffect(()=>{
+    mosaicGame = new MosaicGame([false, false], 5);
+    createPhaser(mosaicGame);
+  }, []);
 
   return (
     <>
@@ -27,5 +30,3 @@ function App() {
     </>
   )
 }
-
-export default App

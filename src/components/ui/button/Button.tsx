@@ -1,12 +1,8 @@
 import { Component, ReactNode } from "react";
+import { ButtonProps } from "@/components";
 
-type Props = {
-    id: string;
-    label: string;
-    onClick: ()=>void;
-}
 
-export class Button extends Component<Props> {
+export class Button extends Component<ButtonProps> {
     render(): ReactNode {
         return (
             <button id={this.props.id} onClick={this.props.onClick}>

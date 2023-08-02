@@ -1,7 +1,6 @@
-import { Action, Board } from '../..';
-import { playerId } from '../Constants';
+import { Action, Board, playerId } from '@/phaser';
 import { tensor, Tensor, GraphModel } from '@tensorflow/tfjs';
-import { argmax, sum } from '../../../common';
+import { argmax, sum } from '@/common';
 import * as tf from '@tensorflow/tfjs';
 
 

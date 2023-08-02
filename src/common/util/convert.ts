@@ -1,5 +1,4 @@
-import { Code64 } from "..";
-import { encodeHuffman, decodeHuffman } from "..";
+import { Code64, encodeHuffman, decodeHuffman } from "@/common";
 
 export function textDevide(text: string, length: number): string[] {
     const arr = [...text];
