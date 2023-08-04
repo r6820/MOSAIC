@@ -6,7 +6,7 @@ export class ButtonContainer extends Component<ButtonContainerProps> {
     render(): ReactNode {
         const items = this.props.buttons.map((items) => <Button key={items.id} {...items} />);
         return (
-            <div>
+            <div className='ButtonContainer'>
                 {items}
             </div>
         );

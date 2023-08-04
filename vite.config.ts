@@ -5,7 +5,7 @@ import react from '@vitejs/plugin-react-swc'
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react()],
-  base: '/MOSAIC/',
+  base: '/MOSAIC',
   resolve:{
     alias:{
       '@': resolve(__dirname, 'src'),
