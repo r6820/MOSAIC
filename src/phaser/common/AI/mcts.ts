@@ -1,7 +1,6 @@
-import { Action, Board } from '../..';
-import { playerId } from '../Constants';
+import { Action, Board, playerId } from '@/phaser';
 import { tensor, Tensor, GraphModel } from '@tensorflow/tfjs';
-import { argmax, sum } from '../../../common';
+import { argmax, sum } from '@/common';
 import * as tf from '@tensorflow/tfjs';
 
 
@@ -90,7 +89,7 @@ export async function loadModel(size: number, prepareBoard?: Board<number>): Pro
     const startTime = Date.now();
     // console.log(import.meta.env.BASE_URL + `tfjs_models/size_${size}/model.json`);
     
-    const model = await tf.loadGraphModel(import.meta.env.BASE_URL + `tfjs_models/size_${size}/model.json`);
+    const model = await tf.loadGraphModel(import.meta.env.BASE_URL + `/tfjs_models/size_${size}/model.json`);
     const action = pvMCTSAction(model);
     if (prepareBoard) { action(prepareBoard); }
     const endTime = Date.now();

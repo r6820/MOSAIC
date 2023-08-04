@@ -11,6 +11,7 @@ export const indicatorWidth: number = 20;
 
 export const stoneRatio: number = 0.9;
 export const holeRatio: number = 0.36;
+export const delayFrames: number = 15;
 export const delayTime: number = 300;
 
 export const playerId: Record<string, number> = { first: 1, second: 2, neutral: 3 }

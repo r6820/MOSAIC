@@ -1,5 +1,5 @@
-import { MosaicGame, ext } from '../../';
-import { inputSwal, selectSwal } from '../../../common';
+import { MosaicGame, ext } from '@/phaser';
+import { inputSwal, selectSwal } from '@/common';
 
 export function saveData(mosaicGame: MosaicGame) {
     mosaicGame.scene.setInteractive(false);

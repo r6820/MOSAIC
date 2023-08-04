@@ -1,5 +1,4 @@
-import { textDevide } from "..";
-import { padding } from "..";
+import { textDevide, padding } from "@/common";
 
 export class Code64 {
     private static readonly TABLE = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_'
