@@ -1,4 +1,4 @@
-import { MosaicScene, Position, Piece, loadModel, Action, playerId, defaultSize, delayFrames } from "@/phaser";
+import { MosaicScene, Position, Piece, loadModel, Action, playerId, defaultSize } from "@/phaser";
 import { arrayDevide, compress, decompress, Code64 } from "@/common";
 
 

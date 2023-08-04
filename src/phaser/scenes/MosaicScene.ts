@@ -1,8 +1,6 @@
 import Phaser from "phaser";
-import { Board, MosaicGame, Piece, Position, boardLength, colors, defaultSize, delayFrames, delayTime, height, holeRatio, indicatorWidth, offset, playerId, stoneRatio, width } from "@/phaser";
-import { sleep } from "@/common";
+import { Board, MosaicGame, Position, Tasks, boardLength, colors, defaultSize, delayFrames, height, holeRatio, indicatorWidth, offset, playerId, stoneRatio, width } from "@/phaser";
 
-type Tasks = { task: () => void, n: number }[];
 
 export class MosaicScene extends Phaser.Scene {
     public mosaicGame: MosaicGame;

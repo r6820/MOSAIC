@@ -12,3 +12,5 @@ export type Piece<T> = {
 }
 
 export type Action = (board: Board<number>) => Position;
+
+export type Tasks = { task: () => void, n: number }[];
