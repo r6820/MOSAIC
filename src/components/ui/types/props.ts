@@ -1,11 +1,11 @@
-export type ButtonProps<T> = {
+export type ButtonProps = {
     id: string;
     label: string;
-    onClick: (props: T) => void;
+    onClick: () => void;
 }
 
-export type ButtonContainerProps<T> = {
-    buttons: ButtonProps<T>[]
+export type ButtonContainerProps = {
+    buttons: ButtonProps[]
 }
 
 export type SelectOption<T> = {
@@ -22,5 +22,10 @@ export type SelectOptions<T> = {
 
 export type SelectContainerProps<T> = {
     selectOptionsArray: SelectOptions<T>[],
-    buttonProps: ButtonProps<SelectOption<T>[]>
+    buttonProps: {
+        id: string;
+        label: string;
+        onClick: (selectOptions: SelectOption<T>[]) => void;
+    }
+
 }
