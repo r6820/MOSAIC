@@ -1,7 +1,6 @@
 export * from './Apps/App'
 export * from './Apps/MainMenu'
 export * from './Apps/Game'
-export * from './Apps/Test'
 export * from './Apps/Page404'
 export * from './ui/button/Button'
 export * from './ui/container/ButtonContainer'
