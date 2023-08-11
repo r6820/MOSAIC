@@ -12,6 +12,8 @@ dist
 dist-ssr
 *.local
 
+other
+
 **/test.*
 **/Test.*
 
