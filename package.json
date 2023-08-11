@@ -2,7 +2,7 @@
   "name": "mosaic",
   "homepage": "https://r6820.github.io/MOSAIC",
   "private": true,
-  "version": "0.2.0.2",
+  "version": "0.2.0.4.3",
   "type": "module",
   "scripts": {
     "dev": "vite",
