@@ -35,9 +35,6 @@ export const MainMenu = () => {
     }
     return (
         <div className='MainMenu flex flex-col'>
-            <h1 className='text-4xl font-extrabold my-5'>
-                MOSAIC
-            </h1>
             <SelectContainer {...props} />
         </div>
     )

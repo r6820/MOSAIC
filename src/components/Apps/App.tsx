@@ -5,6 +5,9 @@ import { Game, MainMenu, Page404 } from '@/components'
 export function App() {
   return (
     <div className='App'>
+      <h1 className='text-4xl font-extrabold my-5'>
+        MOSAIC
+      </h1>
       <Routes>
         <Route path={import.meta.env.BASE_URL} element={<MainMenu />} />
         <Route path={import.meta.env.BASE_URL + '/game'} element={<Game />} />
