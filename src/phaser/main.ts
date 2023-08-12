@@ -15,6 +15,9 @@ export function createPhaser(mosaicGame: MosaicGame): () => void {
     scene: [mosaicScene,],
   };
   const g = new Phaser.Game(config);
+  window.addEventListener('resize', () => {
+    g?.scale.refresh();
+  });
   return () => {
     g?.destroy(true);
   }
