@@ -219,8 +219,8 @@ export class MosaicGame {
         const ai = async () => {
             this.aiAction = this.aiAction || await loadModel(this.size);
             console.log(' ===== AI turn ===== ');
-            const startTime = Date.now();
             this.scene.setInteractive(false);
+            const startTime = Date.now();
             const pos = this.aiAction(this.movesNum % 2 == 0 ? this.board : this.board.flip());
             const endTime = Date.now();
             console.log('predict:', endTime - startTime, 'ms');
@@ -228,7 +228,9 @@ export class MosaicGame {
             this.move(pos);
         }
         this.turn = async () => {
-            ((this.movesNum % 2 == 0 ? FPisAI : SPisAI) ? ai : human)();
+            if (!this.board.isDone()) {
+                ((this.movesNum % 2 == 0 ? FPisAI : SPisAI) ? ai : human)();
+            }
         }
         this.scene = new MosaicScene(this);
     }
