@@ -84,11 +84,8 @@ export class MosaicScene extends Phaser.Scene {
             const val = this.mosaicGame.player;
             this.indicator.fillColor = colors[`stone${val}`];
             this.pointText.setText(`${this.mosaicGame.getPoint(playerId.first)}:${this.mosaicGame.getPoint(playerId.second)}`);
-            
-        });
-        this.addTask(()=>{
             this.mosaicGame.turn();
-        })
+        });
     }
 
     public move(pos: Position) {

@@ -15,30 +15,8 @@ export function createPhaser(mosaicGame: MosaicGame): () => void {
     scene: [mosaicScene,],
   };
   const g = new Phaser.Game(config);
-  window.onload = () => { resize(); };
-  window.addEventListener('resize', () => {
-    resize();
-    g?.scale.refresh();
-  });
   return () => {
     g?.destroy(true);
   }
 }
 
-const resize = () => {
-  let canvas = document.querySelector('canvas');
-  let windowWidth = window.innerWidth;
-  let windowHeight = window.innerHeight;
-  if (canvas) {
-    if (windowWidth < 800 || windowHeight < 800) {
-      if (windowWidth < windowHeight) {
-        canvas.style.width = `${windowWidth}px`;
-        canvas.style.height = `${windowWidth}px`;
-      }
-      else {
-        canvas.style.width = `${windowHeight}px`;
-        canvas.style.height = `${windowHeight}px`;
-      }
-    }
-  }
-}
