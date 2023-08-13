@@ -118,8 +118,10 @@ export class Board<T> extends Array<Array<Array<T>>>{
             ).merge(board.legalPieces(), (v1, v2) => v2 ? v1 : 0)
                 .where(({ value: v }) => v != 0)
                 .map(p => {
-                    board.set(p);
-                    positionArray.push(p.position);
+                    if (!board.isDone()) {
+                        board.set(p);
+                        positionArray.push(p.position);
+                    }
                     return p
                 });
         } while (l.length > 0)

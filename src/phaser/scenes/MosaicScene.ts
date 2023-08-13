@@ -1,5 +1,6 @@
 import Phaser from "phaser";
 import { Board, MosaicGame, Position, Tasks, boardLength, colors, defaultSize, delayFrames, height, holeRatio, indicatorWidth, offset, playerId, stoneRatio, width } from "@/phaser";
+import placeSoundPath from '@/assets/place.mp3'
 
 
 export class MosaicScene extends Phaser.Scene {
@@ -8,6 +9,7 @@ export class MosaicScene extends Phaser.Scene {
     private indicator!: Phaser.GameObjects.Rectangle;
     private stoneBoard!: Board<{ stone: Stone, hole: Hole }>;
     private pointText!: Phaser.GameObjects.Text;
+    private placeSound!: Phaser.Sound.NoAudioSound | Phaser.Sound.HTML5AudioSound | Phaser.Sound.WebAudioSound;
     private updateTasks: Tasks = [];
     public size: number = defaultSize;
     public stoneSize: number = boardLength / this.size;
@@ -23,10 +25,11 @@ export class MosaicScene extends Phaser.Scene {
     }
 
     preload() {
-        // this.load.setBaseURL("./public");
+        this.load.audio('place', [placeSoundPath])
     }
 
     create() {
+        this.placeSound = this.sound.add('place');
         this.add.rectangle(width / 2, height / 2, boardLength, boardLength, colors.frame).setDepth(-1);
         this.indicator = this.add.rectangle(width / 2, height / 2, boardLength + indicatorWidth, boardLength + indicatorWidth, colors.bg).setDepth(-2);
         this.stoneBoard = this.mosaicGame.board.mapPiece(({ position: pos }) => ({
@@ -57,6 +60,7 @@ export class MosaicScene extends Phaser.Scene {
         if (isPlace) {
             hole.render();
             stone.render(true);
+            this.placeSound.play();
         } else {
             stone.render(false);
         }
@@ -84,6 +88,8 @@ export class MosaicScene extends Phaser.Scene {
             const val = this.mosaicGame.player;
             this.indicator.fillColor = colors[`stone${val}`];
             this.pointText.setText(`${this.mosaicGame.getPoint(playerId.first)}:${this.mosaicGame.getPoint(playerId.second)}`);
+        });
+        this.addTask(() => {
             this.mosaicGame.turn();
         });
     }
