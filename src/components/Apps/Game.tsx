@@ -8,7 +8,7 @@ import 'animate.css'
 import { useLocation } from 'react-router-dom'
 
 
-export function Game() {
+export const Game = () => {
   let mosaicGame: MosaicGame;
   const { state } = useLocation();
   useEffect(()=>{

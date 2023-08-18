@@ -2,7 +2,7 @@ import { Routes, Route } from 'react-router-dom'
 import { Game, MainMenu, Page404 } from '@/components'
 
 
-export function App() {
+export const App = () => {
   return (
     <div className='App'>
       <h1 className='text-4xl font-extrabold my-5'>
