@@ -1,5 +1,6 @@
 export * from './Apps/App'
 export * from './Apps/MainMenu'
+export * from './Apps/Play'
 export * from './Apps/Game'
 export * from './Apps/Page404'
 export * from './ui/button/Button'

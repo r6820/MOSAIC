@@ -1,5 +1,5 @@
-import Phaser from "phaser";
-import { MosaicGame, colors, height, width } from "@/phaser";
+import Phaser from 'phaser';
+import { MosaicGame, colors, height, width } from '@/phaser';
 
 export const createPhaser = (mosaicGame: MosaicGame) => {
   const mosaicScene = mosaicGame.scene;
