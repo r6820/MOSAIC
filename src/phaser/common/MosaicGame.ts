@@ -258,7 +258,7 @@ export class MosaicGame {
 
         this.movesNum -= 1;
         this.player = this.movesNum % 2 == 0 ? playerId.first : playerId.second;
-        if (this.players[this.movesNum % 2 == 0 ? 0 : 1] == 'human') {
+        if (this.players[this.movesNum % 2 == 0 ? 0 : 1] == 'human' || this.movesNum==0) {
             this.board = this.gameRecord.get(this.movesNum);
             this.scene.allRerender();
             this.turn();
@@ -273,7 +273,7 @@ export class MosaicGame {
 
         this.movesNum += 1;
         this.player = this.movesNum % 2 == 0 ? playerId.first : playerId.second;
-        if (this.players[this.movesNum % 2 == 0 ? 0 : 1] == 'human') {
+        if (this.players[this.movesNum % 2 == 0 ? 0 : 1] == 'human' || this.movesNum == this.gameRecord.length - 1) {
             this.board = this.gameRecord.get(this.movesNum);
             this.scene.allRerender();
             this.turn();

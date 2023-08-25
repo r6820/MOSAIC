@@ -2,14 +2,14 @@ import { useNavigate } from 'react-router-dom'
 import { Button} from '@/components'
 import Select from "react-select";
 import { useState } from 'react';
-import { PV_EVAL_BASIS, player } from '@/phaser';
+import { PV_EVAL_BASIS, PV_MAX_LEVEL, player } from '@/phaser';
 
 
 export const Play = () => {
     const navigate = useNavigate();
     const [size, setSize] = useState(7);
     const [isAI, setIsAI] = useState([false, false]);
-    const [level, setLevel] = useState([1, 1]);
+    const [level, setLevel] = useState([10, 10]);
     const selectOption = {
         id: 'size', label: 'size', options: [
             { value: 5, label: '5' },
@@ -41,8 +41,8 @@ export const Play = () => {
                         }} />
                         AI
                     </label>
-                    <label className='border-2 rounded'>Level {level[index]}
-                        <input id={`${value.id}Level`} type='range' name={`${value.id}Level`} min='1' max='5' step='1' value={level[index]} onChange={(e) => {
+                    <label className='border-2 rounded'>Level:{('  '+level[index]).slice(-2)}
+                        <input id={`${value.id}Level`} type='range' name={`${value.id}Level`} min='1' max={PV_MAX_LEVEL} step='1' value={level[index]} onChange={(e) => {
                             e ? setLevel(level.map((v, i) => (i == index ? parseInt(e.target.value) : v))) : null;
                         }} />
                     </label>
