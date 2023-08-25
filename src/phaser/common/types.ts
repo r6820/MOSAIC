@@ -1,4 +1,4 @@
-import { Board, MCTS } from "@/phaser";
+import { Board } from "@/phaser";
 
 export type Position = {
     i: number;
