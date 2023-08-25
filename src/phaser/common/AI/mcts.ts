@@ -3,8 +3,7 @@ import { tensor, Tensor, GraphModel } from '@tensorflow/tfjs';
 import { argmax, sum } from '@/common';
 import * as tf from '@tensorflow/tfjs';
 
-
-const PV_EVAL_NUM = 100
+export const PV_EVAL_BASIS = 50;
 
 function convertToTensor(board: Board<number>): Tensor {
     const players = [playerId.first, playerId.second]
@@ -23,8 +22,8 @@ function predict(model: GraphModel, board: Board<number>): [number, number[]] {
         const value = (t1.arraySync() as number[][])[0][0];
         let policies = (t2.arraySync() as number[][])[0];
         policies = board.legalActions().map(({ i, j, k }) => policies[i * size ** 2 + j * size + k]);
-        const _sum = sum(policies);
-        policies = policies.map(v => v / _sum);
+        const policiesSum = sum(policies);
+        policies = policies.map(v => v / policiesSum);
         return [value, policies]
     })
 }
@@ -43,12 +42,11 @@ class MCTSNode {
     }
 
     public evaluate(model: GraphModel) {
-        const fp = this.board.isWin(playerId.first);
-        const sp = this.board.isWin(playerId.second);
+        const isDone = this.board.isDone();
         let value = 0;
         let policies: number[] = [];
-        if (fp || sp) {
-            value = fp ? (sp ? 0 : 1) : -1;
+        if (isDone) {
+            value = this.board.firstPlayerValue();
         } else if (this.childNodes.length == 0) {
             [value, policies] = predict(model, this.board);
             this.childNodes = this.board.nextAll(playerId.first).map((v, i) => new MCTSNode(v.flip(), policies[i]));
@@ -70,29 +68,43 @@ class MCTSNode {
     }
 }
 
-function pvMCTSScores(model: GraphModel, board: Board<number>): number[] {
-    const rootNode = new MCTSNode(board, 0);
-    for (let i = 0; i < PV_EVAL_NUM; i++) {
-        rootNode.evaluate(model);
+export class MCTS {
+    private size: number;
+    private evalNum: number;
+    public action?: Action;
+    constructor(size: number, evalNum: number) {
+        this.size = size;
+        this.evalNum = evalNum;
     }
-    return rootNode.childNodes.map(node => node.n)
-}
 
-function pvMCTSAction(model: GraphModel): Action {
-    return (board: Board<number>) => {
-        const scores = pvMCTSScores(model, board);
-        return board.legalActions()[argmax(scores)]
+    private pvMCTSScores(model: GraphModel, board: Board<number>): number[] {
+        const rootNode = new MCTSNode(board, 0);
+        for (let i = 0; i < this.evalNum; i++) {
+            rootNode.evaluate(model);
+        }
+        return rootNode.childNodes.map(node => node.n)
     }
-}
 
-export async function loadModel(size: number, prepareBoard?: Board<number>): Promise<Action> {
-    const startTime = Date.now();
-    // console.log(import.meta.env.BASE_URL + `tfjs_models/size_${size}/model.json`);
-    
-    const model = await tf.loadGraphModel(import.meta.env.BASE_URL + `/tfjs_models/size_${size}/model.json`);
-    const action = pvMCTSAction(model);
-    if (prepareBoard) { action(prepareBoard); }
-    const endTime = Date.now();
-    console.log('loadModel:', endTime - startTime, 'ms');
-    return action
+    private pvMCTSAction(model: GraphModel) {
+        return (board: Board<number>) => {
+            const startTime = Date.now();
+            const scores = this.pvMCTSScores(model, board);
+            const pos = board.legalActions()[argmax(scores)];
+            const endTime = Date.now();
+            console.log('predict:', endTime - startTime, 'ms');
+            console.log('position', pos);
+            return pos
+        }
+    }
+
+    public async loadModel(prepareBoard?: Board<number>) {
+        console.log('loading...');
+        const startTime = Date.now();
+        const model = await tf.loadGraphModel(import.meta.env.BASE_URL + `/tfjs_models/size_${this.size}/model.json`);
+        const action = this.pvMCTSAction(model);
+        if (prepareBoard) { action(prepareBoard); }
+        const endTime = Date.now();
+        console.log('load model:', endTime - startTime, 'ms');
+        this.action = action
+    }
 }

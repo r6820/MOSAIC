@@ -1,4 +1,4 @@
-import { MosaicScene, Position, Piece, loadModel, Action, playerId, defaultSize } from "@/phaser";
+import { MosaicScene, Position, Piece, MCTS, playerId, defaultSize, player } from "@/phaser";
 import { arrayDevide, compress, decompress, Code64 } from "@/common";
 
 
@@ -18,6 +18,10 @@ export class Board<T> extends Array<Array<Array<T>>>{
 
     public isDone(): boolean {
         return this.isWin(playerId.first) || this.isWin(playerId.second)
+    }
+
+    public firstPlayerValue(): number {
+        return this.count(p => p.value == playerId.first) - this.count(p => p.value == playerId.second)
     }
 
     public reverse(): Board<T> {
@@ -134,7 +138,6 @@ export class Board<T> extends Array<Array<Array<T>>>{
 
     public flip() {
         return this.mapPiece(({ value }) => value == playerId.first ? playerId.second : value == playerId.second ? playerId.first : value)
-
     }
 }
 
@@ -200,37 +203,36 @@ export class GameRecord {
 }
 
 export class MosaicGame {
-    private isAI: { first: boolean, second: boolean };
+    private players: { 0: 'human' | MCTS, 1: 'human' | MCTS };
     public size: number;
     public scene: MosaicScene;
     public gameRecord: GameRecord;
     private movesNum: number = 0;
     public player: number = playerId.first;
     public board: Board<number>;
-    private aiAction!: Action;
     public turn: () => Promise<void> = async () => { };
-    constructor(size: number = defaultSize, [FPisAI, SPisAI]: [boolean, boolean] = [false, false]) {
-        this.isAI = { first: FPisAI, second: SPisAI };
+    constructor(size: number = defaultSize, [player1, player2]: [player, player] = ['human', 'human']) {
+        this.players = {
+            0: player1 == 'human' ? player1 : new MCTS(size, player1),
+            1: player2 == 'human' ? player2 : new MCTS(size, player2)
+        };
         this.size = size;
         this.gameRecord = new GameRecord(this.size);
         this.board = this.gameRecord.get(this.movesNum);
-        const human = async () => {
-            console.log(' ===== Player turn ===== ');
-            this.scene.setInteractive(true);
-        }
-        const ai = async () => {
-            this.aiAction = this.aiAction || await loadModel(this.size);
-            console.log(' ===== AI turn ===== ');
-            const startTime = Date.now();
-            this.scene.setInteractive(false);
-            const pos = this.aiAction(this.movesNum % 2 == 0 ? this.board : this.board.flip());
-            const endTime = Date.now();
-            console.log('predict:', endTime - startTime, 'ms');
-            console.log('position', pos);
-            this.move(pos);
-        }
         this.turn = async () => {
-            ((this.movesNum % 2 == 0 ? FPisAI : SPisAI) ? ai : human)();
+            const pl = this.players[this.movesNum % 2 == 0 ? 0 : 1];
+            if (pl == 'human') {
+                console.log(' ===== Player turn ===== ');
+                this.scene.setInteractive(true);
+            } else {
+                if (!pl.action) { await pl.loadModel(); }
+                console.log(' ===== AI turn ===== ');
+                this.scene.setInteractive(false);
+                if (pl.action) {
+                    const pos = pl.action(this.movesNum % 2 == 0 ? this.board : this.board.flip());
+                    this.move(pos);
+                }
+            }
         }
         this.scene = new MosaicScene(this);
     }
@@ -256,12 +258,12 @@ export class MosaicGame {
 
         this.movesNum -= 1;
         this.player = this.movesNum % 2 == 0 ? playerId.first : playerId.second;
-        if (this.isAI[this.movesNum % 2 == 0 ? 'first' : 'second']) {
-            this.prev();
-        } else {
+        if (this.players[this.movesNum % 2 == 0 ? 0 : 1] == 'human') {
             this.board = this.gameRecord.get(this.movesNum);
             this.scene.allRerender();
             this.turn();
+        } else {
+            this.prev();
         }
     }
 
@@ -271,12 +273,12 @@ export class MosaicGame {
 
         this.movesNum += 1;
         this.player = this.movesNum % 2 == 0 ? playerId.first : playerId.second;
-        if (this.isAI[this.movesNum % 2 == 0 ? 'first' : 'second']) {
-            this.next()
-        } else {
+        if (this.players[this.movesNum % 2 == 0 ? 0 : 1] == 'human') {
             this.board = this.gameRecord.get(this.movesNum);
             this.scene.allRerender();
             this.turn();
+        } else {
+            this.next()
         }
     }
 
