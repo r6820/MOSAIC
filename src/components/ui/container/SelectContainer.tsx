@@ -1,7 +1,6 @@
 import { useState } from "react";
 import Select from "react-select";
-import { SelectContainerProps } from "../types/props";
-import { Button } from "../button/Button";
+import { SelectContainerProps, ButtonContainer } from "@/components";
 
 import '@/css/App.css'
 
@@ -18,12 +17,12 @@ export const SelectContainer = <T,>(props: SelectContainerProps<T>) => {
         </div>
     );
 
-    const buttonProps = {...props.buttonProps, onClick: ()=>{props.buttonProps.onClick(selectedValues)}}
+    const buttonProps = props.buttonsProps.map((buttonProps)=>({ ...buttonProps, onClick: () => { buttonProps.onClick(selectedValues) } }))
 
     return (
         <div className='SelectContainer'>
             {items}
-            <Button key={props.buttonProps.id} {...buttonProps} />
+            <ButtonContainer buttons={buttonProps}/>
         </div>
     );
 };

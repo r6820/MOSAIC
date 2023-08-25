@@ -1,5 +1,5 @@
-import { Routes, Route } from 'react-router-dom'
-import { Game, MainMenu, Page404 } from '@/components'
+import { Routes, Route, BrowserRouter } from 'react-router-dom'
+import { Game, Lobby, MainMenu, Online, Page404, Play } from '@/components'
 
 
 export const App = () => {
@@ -8,11 +8,17 @@ export const App = () => {
       <h1 className='text-4xl font-extrabold my-5'>
         MOSAIC
       </h1>
-      <Routes>
-        <Route path={import.meta.env.BASE_URL} element={<MainMenu />} />
-        <Route path={import.meta.env.BASE_URL + '/game'} element={<Game />} />
-        <Route path="/*" element={<Page404 />} />
-      </Routes>
+      <BrowserRouter basename={import.meta.env.BASE_URL}>
+        <Routes>
+          <Route path='' element={<MainMenu />} />
+          <Route path='/play' element={<Play />} />
+          <Route path='/game' element={<Game />} />
+          <Route path='/online' element={<Online />} />
+          <Route path='/online/lobby' element={<Lobby />} />
+          <Route path='/online/game' element={<Game />} />
+          <Route path="/*" element={<Page404 />} />
+        </Routes>
+      </BrowserRouter>
     </div>
   )
 }

@@ -1,4 +1,4 @@
-import { Board } from "@/phaser";
+import { Board, MCTS } from "@/phaser";
 
 export type Position = {
     i: number;
@@ -14,3 +14,5 @@ export type Piece<T> = {
 export type Action = (board: Board<number>) => Position;
 
 export type Tasks = { task: () => void, n: number }[];
+
+export type player = 'human' | number;

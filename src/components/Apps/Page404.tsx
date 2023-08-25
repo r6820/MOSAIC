@@ -5,7 +5,7 @@ export const Page404 = () => {
     <>
       <h1>404 NOT FOUND</h1>
       <p>お探しのページが見つかりませんでした。</p>
-      <Link to={import.meta.env.BASE_URL}>Topに戻る</Link>
+      <Link to=''>Topに戻る</Link>
     </>
   )
 }

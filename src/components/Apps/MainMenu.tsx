@@ -7,8 +7,8 @@ export const MainMenu = () => {
 
     return (
         <div className='MainMenu flex flex-col'>
-            <Button id='playButton' label='Play' onClick={() => { navigate(import.meta.env.BASE_URL + '/play'); }} />
-            <Button id='playButton' label='Online' onClick={() => { navigate(import.meta.env.BASE_URL + '/online'); }} />
+            <Button id='playButton' label='Play' onClick={() => { navigate('/play'); }} />
+            {/* <Button id='playButton' label='Online' onClick={() => {navigate('/online'); }} /> */}
         </div>
     )
 }

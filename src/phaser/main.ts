@@ -10,9 +10,9 @@ export const createPhaser = (mosaicGame: MosaicGame) => {
       mode: Phaser.Scale.ENVELOP,
       parent: 'phaser-container',
       width: width,
-      height: height,
+      height: height
     },
-    scene: [mosaicScene,],
+    scene: [mosaicScene]
   };
   const g = new Phaser.Game(config);
   window.addEventListener('resize', () => {
