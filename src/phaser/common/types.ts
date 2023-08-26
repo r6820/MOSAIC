@@ -11,7 +11,7 @@ export type Piece<T> = {
     value: T;
 }
 
-export type Action = (board: Board<number>) => Position;
+export type Action = (board: Board<number>) => Promise<Position>;
 
 export type Tasks = { task: () => void, n: number }[];
 

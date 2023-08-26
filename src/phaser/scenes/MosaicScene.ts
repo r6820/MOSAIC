@@ -85,7 +85,7 @@ export class MosaicScene extends Phaser.Scene {
         })
         this.addTask(() => {
             this.holeRender();
-            const val = this.mosaicGame.player;
+            const val = this.mosaicGame.currentPlayerId;
             this.indicator.fillColor = colors[`stone${val}`];
             this.pointText.setText(`${this.mosaicGame.getPoint(playerId.first)}:${this.mosaicGame.getPoint(playerId.second)}`);
         });
@@ -104,7 +104,7 @@ export class MosaicScene extends Phaser.Scene {
         this.stoneBoard.forEachPiece(({ value: { stone, hole } }) => {
             stone.render(); hole.render()
         });
-        const val = this.mosaicGame.player;
+        const val = this.mosaicGame.currentPlayerId;
         this.indicator.fillColor = colors[`stone${val}`];
         this.pointText.setText(`${this.mosaicGame.getPoint(playerId.first)}:${this.mosaicGame.getPoint(playerId.second)}`);
     }

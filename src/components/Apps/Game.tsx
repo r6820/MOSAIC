@@ -1,11 +1,12 @@
-import { useEffect } from 'react'
-import { createPhaser, MosaicGame, saveData, loadData, removeData, defaultSize, player } from '@/phaser'
-import { ButtonContainer } from '@/components'
+import { useEffect, useState } from 'react';
+import { FaFastBackward, FaFastForward, FaStepBackward, FaStepForward } from 'react-icons/fa';
+import { createPhaser, MosaicGame, saveData, loadData, removeData, defaultSize, player } from '@/phaser';
+import { Button } from '@/components';
 
-import '@/css/App.css'
-import '@/css/swal.css'
-import 'animate.css'
-import { useLocation } from 'react-router-dom'
+import '@/css/App.css';
+import '@/css/swal.css';
+import 'animate.css';
+import { useLocation } from 'react-router-dom';
 
 type location = {
   state: {
@@ -14,11 +15,14 @@ type location = {
   }
 }
 
+let mosaicGame: MosaicGame;
+
 export const Game = () => {
-  let mosaicGame: MosaicGame;
+  const [movesNum, setMovesNum] = useState(0);
   const { state } = useLocation() as location;
   useEffect(() => {
     mosaicGame = new MosaicGame(state.size || defaultSize, state.players || ['human', 'human']);
+    mosaicGame.onChangeMovesNum((n) => { setMovesNum(n) });
     const destroy = createPhaser(mosaicGame);
     return destroy
   }, []);
@@ -26,15 +30,18 @@ export const Game = () => {
   return (
     <div>
       <div id="phaser-container"></div>
-      <ButtonContainer buttons={[
-        { id: 'prev-button', label: '<prev', onClick: () => mosaicGame.prev() },
-        { id: 'next-button', label: 'next>', onClick: () => mosaicGame.next() }
-      ]} />
-      <ButtonContainer buttons={[
-        { id: 'saveData', label: 'save', onClick: () => { saveData(mosaicGame) } },
-        { id: 'loadData', label: 'load', onClick: () => { loadData(mosaicGame) } },
-        { id: 'removeData', label: 'remove', onClick: () => { removeData(mosaicGame) } }
-      ]} />
+      <div className='turn-operation'>
+        <Button id='fast-backward-button' label={<FaFastBackward />} onClick={() => mosaicGame.fastBackward()} />
+        <Button id='prev-button' label={<FaStepBackward />} onClick={() => mosaicGame.prev()} />
+        <label className='m-2'>{movesNum}</label>
+        <Button id='next-button' label={<FaStepForward />} onClick={() => mosaicGame.next()} />
+        <Button id='fast-forward-button' label={<FaFastForward />} onClick={() => mosaicGame.fastForward()} />
+      </div>
+      <div className='game-record-operation'>
+        <Button id='save-button' label='save' onClick={() => { saveData(mosaicGame) }} />
+        <Button id='load-button' label='load' onClick={() => { loadData(mosaicGame) }} />
+        <Button id='remove-button' label='remove' onClick={() => { removeData(mosaicGame) }} />
+      </div>
     </div>
   )
 }

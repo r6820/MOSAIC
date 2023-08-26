@@ -6,29 +6,6 @@ import * as tf from '@tensorflow/tfjs';
 export const PV_EVAL_BASIS = 50;
 export const PV_MAX_LEVEL = 10
 
-function convertToTensor(board: Board<number>): Tensor {
-    const players = [playerId.first, playerId.second]
-    return tensor([players.map(p => (board.mapPiece(({ value: v }) => Number(v == p)) as number[][][]).map(v1 =>
-        [...v1, ...new Array<Array<number>>(board.length - v1.length).fill([0]).map(() => new Array<number>(v1.length).fill(0))].map(v2 =>
-            [...v2, ...new Array<number>(board.length - v2.length).fill(0)]
-        )
-    ))]);
-}
-
-function predict(model: GraphModel, board: Board<number>): [number, number[]] {
-    const size = board.length;
-    return tf.tidy(() => {
-        const boardTensor = convertToTensor(board);
-        const [t1, t2] = model.predict(boardTensor) as [Tensor, Tensor];
-        const value = (t1.arraySync() as number[][])[0][0];
-        let policies = (t2.arraySync() as number[][])[0];
-        policies = board.legalActions().map(({ i, j, k }) => policies[i * size ** 2 + j * size + k]);
-        const policiesSum = sum(policies);
-        policies = policies.map(v => v / policiesSum);
-        return [value, policies]
-    })
-}
-
 class MCTSNode {
     private board: Board<number>;
     private p: number;
@@ -49,7 +26,7 @@ class MCTSNode {
         if (isDone) {
             value = this.board.firstPlayerValue();
         } else if (this.childNodes.length == 0) {
-            [value, policies] = predict(model, this.board);
+            [value, policies] = MCTSNode.predict(model, this.board);
             this.childNodes = this.board.nextAll(playerId.first).map((v, i) => new MCTSNode(v.flip(), policies[i]));
         } else {
             value = -this.nextChildNode().evaluate(model);
@@ -66,6 +43,29 @@ class MCTSNode {
         const t = sum(this.childNodes.map(node => node.n));
         const pucbValues = this.childNodes.map(node => (node.n == 0 ? 0 : -node.w / node.n) + C_PUCT * node.p * t ** 0.5 / (1 + node.n));
         return this.childNodes[argmax(pucbValues)]
+    }
+
+    private static convertToTensor(board: Board<number>): Tensor {
+        const players = [playerId.first, playerId.second]
+        return tensor([players.map(p => (board.mapPiece(({ value: v }) => Number(v == p)) as number[][][]).map(v1 =>
+            [...v1, ...new Array<Array<number>>(board.length - v1.length).fill([0]).map(() => new Array<number>(v1.length).fill(0))].map(v2 =>
+                [...v2, ...new Array<number>(board.length - v2.length).fill(0)]
+            )
+        ))]);
+    }
+    
+    private static predict(model: GraphModel, board: Board<number>): [number, number[]] {
+        const size = board.length;
+        return tf.tidy(() => {
+            const boardTensor = MCTSNode.convertToTensor(board);
+            const [t1, t2] = model.predict(boardTensor) as [Tensor, Tensor];
+            const value = (t1.arraySync() as number[][])[0][0];
+            let policies = (t2.arraySync() as number[][])[0];
+            policies = board.legalActions().map(({ i, j, k }) => policies[i * size ** 2 + j * size + k]);
+            const policiesSum = sum(policies);
+            policies = policies.map(v => v / policiesSum);
+            return [value, policies]
+        })
     }
 }
 
@@ -87,7 +87,7 @@ export class MCTS {
     }
 
     private pvMCTSAction(model: GraphModel) {
-        return (board: Board<number>) => {
+        return async (board: Board<number>) => {
             const startTime = Date.now();
             const scores = this.pvMCTSScores(model, board);
             const pos = board.legalActions()[argmax(scores)];
