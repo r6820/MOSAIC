@@ -203,7 +203,7 @@ export class GameRecord {
 }
 
 export class MosaicGame {
-    private players: { 0: 'human' | MCTS, 1: 'human' | MCTS };
+    private players: { 0: 'human' | 'Online' | MCTS, 1: 'human' | 'Online' | MCTS };
     public size: number;
     public scene: MosaicScene;
     public gameRecord: GameRecord;
@@ -213,8 +213,8 @@ export class MosaicGame {
     public board: Board<number>;
     constructor(size: number = defaultSize, [player1, player2]: [player, player] = ['human', 'human']) {
         this.players = {
-            0: player1 == 'human' ? player1 : new MCTS(size, player1),
-            1: player2 == 'human' ? player2 : new MCTS(size, player2)
+            0: typeof player1 == 'number' ? new MCTS(size, player1) : player1,
+            1: typeof player2 == 'number' ? new MCTS(size, player2) : player2
         };
         this.size = size;
         this.gameRecord = new GameRecord(this.size);
@@ -237,11 +237,12 @@ export class MosaicGame {
         if (this.board.isDone()) { return }
         const pl = this.players[this.movesNum % 2 == 0 ? 0 : 1];
         if (pl == 'human') {
-            console.log(' ===== Player turn ===== ');
+            console.log(` ===== Player(${this.movesNum % 2 + 1}) turn ===== `);
             this.scene.setInteractive(true);
+        } else if (pl == 'Online') {
         } else {
             if (!pl.action) { await pl.loadModel(); }
-            console.log(' ===== AI turn ===== ');
+            console.log(` ===== AI(${this.movesNum % 2 + 1}) turn ===== `);
             this.scene.setInteractive(false);
             if (pl.action) {
                 // const pos = await pl.action(this.movesNum % 2 == 0 ? this.board : this.board.flip());
@@ -256,7 +257,7 @@ export class MosaicGame {
         this.scene.setInteractive(false);
         if (this.board.isDone()) { return }
         const action: Piece<number> = { position: pos, value: this.currentPlayerId };
-        this.setMovesNum(this.movesNum+1);
+        this.setMovesNum(this.movesNum + 1);
         this.currentPlayerId = this.movesNum % 2 == 0 ? playerId.first : playerId.second;
         const [board, positionArray] = this.gameRecord.move(this.movesNum, action);
         this.board = board;

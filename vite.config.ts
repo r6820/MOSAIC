@@ -11,5 +11,8 @@ export default defineConfig({
       '@': resolve(__dirname, 'src'),
       '#root': resolve(__dirname)
     }
+  },
+  build:{
+    chunkSizeWarningLimit: 5_000_000
   }
 })

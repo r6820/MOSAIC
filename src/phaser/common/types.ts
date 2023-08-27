@@ -15,4 +15,4 @@ export type Action = (board: Board<number>) => Promise<Position>;
 
 export type Tasks = { task: () => void, n: number }[];
 
-export type player = 'human' | number;
+export type player = 'human' | 'Online' | number;

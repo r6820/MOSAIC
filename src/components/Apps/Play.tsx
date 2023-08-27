@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom'
-import { Button} from '@/components'
+import { Button } from '@/components'
 import Select from "react-select";
 import { useState } from 'react';
 import { PV_EVAL_BASIS, PV_MAX_LEVEL, player } from '@/phaser';
@@ -29,7 +29,7 @@ export const Play = () => {
         <div className='MainMenu flex flex-col'>
             <div className='flex justify-center items-center gap-1 m-1'>
                 <label>size</label><Select {...selectOption} onChange={(e) => {
-                    e ? setSize(e.value) : null
+                    if (e) { setSize(e.value); }
                 }} />
             </div>
             {playerOptions.map((value, index) => (
@@ -37,13 +37,13 @@ export const Play = () => {
                     <label>{value.label}</label>
                     <label htmlFor={`${value.id}isAI`}>
                         <input type='checkbox' id={`${value.id}isAI`} name={`${value.id}isAI`} value='AI' checked={isAI[index]} onChange={(e) => {
-                            e ? setIsAI(isAI.map((v, i) => (i == index ? e.target.checked : v))) : null;
+                            if (e) { setIsAI(isAI.map((v, i) => (i == index ? e.target.checked : v))); }
                         }} />
                         AI
                     </label>
-                    <label className='border-2 rounded'>Level:{('  '+level[index]).slice(-2)}
+                    <label className='border-2 rounded'>Level:{('  ' + level[index]).slice(-2)}
                         <input id={`${value.id}Level`} type='range' name={`${value.id}Level`} min='1' max={PV_MAX_LEVEL} step='1' value={level[index]} onChange={(e) => {
-                            e ? setLevel(level.map((v, i) => (i == index ? parseInt(e.target.value) : v))) : null;
+                            if (e) { setLevel(level.map((v, i) => (i == index ? parseInt(e.target.value) : v))); }
                         }} />
                     </label>
                 </div>
