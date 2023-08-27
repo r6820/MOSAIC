@@ -13,5 +13,5 @@ export type RoomProps = {
     size: number,
     player1: string,
     player2: string,
-    state: string,
+    status: number,
 }

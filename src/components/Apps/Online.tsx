@@ -4,6 +4,7 @@ import axios from 'axios';
 
 import { API_URL } from '@/config/default';
 
+
 export function Online() {
     const navigate = useNavigate();
     const inputEl = useRef<HTMLInputElement>(null!);
@@ -13,6 +14,7 @@ export function Online() {
         axios.get(
             API_URL + '/lobby'
         ).then((res) => {
+            console.log(res.data)
             navigate('/online/lobby', { state: res.data });
         }).catch((reason) => {
             console.log(reason);

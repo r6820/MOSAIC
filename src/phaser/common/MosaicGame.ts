@@ -314,12 +314,10 @@ export class MosaicGame {
     }
 
     public exportData(): string {
-        console.log('save');
         return compress(this.gameRecord.exportData())
     }
 
     public importData(data: string) {
-        console.log('load');
         this.movesNum = 0;
         this.gameRecord = this.gameRecord.importData(decompress(data));
         this.board = this.gameRecord.get(this.movesNum);
