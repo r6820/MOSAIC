@@ -259,8 +259,6 @@ export class MosaicGame {
             return
         }
         const pl = this.players[this.current_turn()];
-        console.log(this.players);
-
         if (pl == 'human') {
             console.log(` ===== Player(${this.movesNum % 2 + 1}) turn ===== `);
             this.scene.setInteractive(true);
