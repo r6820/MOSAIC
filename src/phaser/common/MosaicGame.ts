@@ -203,23 +203,31 @@ export class GameRecord {
 }
 
 export class MosaicGame {
-    private players: { 0: 'human' | 'Online' | MCTS, 1: 'human' | 'Online' | MCTS };
+    private players: { 1: 'human' | 'Online' | MCTS, 2: 'human' | 'Online' | MCTS };
     public size: number;
     public scene: MosaicScene;
     public gameRecord: GameRecord;
     private movesNum: number = 0;
+    public userState: 0 | 1 | 2 = 0;
     private setMovesNum: (n: number) => void = (n) => { this.movesNum = n; };
-    public currentPlayerId: number = playerId.first;
+    private finish: () => void = () => { };
     public board: Board<number>;
     constructor(size: number = defaultSize, [player1, player2]: [player, player] = ['human', 'human']) {
         this.players = {
-            0: typeof player1 == 'number' ? new MCTS(size, player1) : player1,
-            1: typeof player2 == 'number' ? new MCTS(size, player2) : player2
+            1: typeof player1 == 'number' ? new MCTS(size, player1) : player1,
+            2: typeof player2 == 'number' ? new MCTS(size, player2) : player2
         };
         this.size = size;
         this.gameRecord = new GameRecord(this.size);
         this.board = this.gameRecord.get(this.movesNum);
         this.scene = new MosaicScene(this);
+    }
+
+    public boardReset(){
+        this.setMovesNum(0);
+        this.gameRecord = new GameRecord(this.size);
+        this.board = this.gameRecord.get(this.movesNum);
+        this.scene.allRerender();
     }
 
     public onChangeMovesNum(onChangeFunc: (_n: number) => void) {
@@ -229,17 +237,42 @@ export class MosaicGame {
         };
     }
 
+    public setFinish(fin:()=>void){
+        this.finish = fin;
+    }
+
     public getPoint(player: number): number {
         return this.board.count(p => p.value == player)
     }
 
+    public current_turn() {
+        return this.movesNum % 2 == 0 ? 1 : 2
+    }
+
+    public current_enemy_turn() {
+        return this.movesNum % 2 == 0 ? 2 : 1
+    }
+
     public async turn(): Promise<void> {
-        if (this.board.isDone()) { return }
-        const pl = this.players[this.movesNum % 2 == 0 ? 0 : 1];
+        if (this.board.isDone()) {
+            if (this.userState != 0) { this.finish(); }
+            return
+        }
+        const pl = this.players[this.current_turn()];
+        console.log(this.players);
+
         if (pl == 'human') {
             console.log(` ===== Player(${this.movesNum % 2 + 1}) turn ===== `);
             this.scene.setInteractive(true);
         } else if (pl == 'Online') {
+            if (this.userState != 0) {
+                console.log(` ===== Player(${this.movesNum % 2 + 1}) turn ===== `);
+                if (this.userState == this.current_turn()) {
+                    this.scene.setInteractive(true);
+                } else {
+                    this.scene.setInteractive(false);
+                }
+            }
         } else {
             if (!pl.action) { await pl.loadModel(); }
             console.log(` ===== AI(${this.movesNum % 2 + 1}) turn ===== `);
@@ -256,9 +289,8 @@ export class MosaicGame {
     public move(pos: Position): void {
         this.scene.setInteractive(false);
         if (this.board.isDone()) { return }
-        const action: Piece<number> = { position: pos, value: this.currentPlayerId };
+        const action: Piece<number> = { position: pos, value: this.current_turn() };
         this.setMovesNum(this.movesNum + 1);
-        this.currentPlayerId = this.movesNum % 2 == 0 ? playerId.first : playerId.second;
         const [board, positionArray] = this.gameRecord.move(this.movesNum, action);
         this.board = board;
         this.scene.render(positionArray);
@@ -267,16 +299,15 @@ export class MosaicGame {
     public jump(movesNum: number): void {
         if (movesNum < 0 || this.gameRecord.length - 1 < movesNum) { return }
         this.setMovesNum(movesNum)
-        this.currentPlayerId = this.movesNum % 2 == 0 ? playerId.first : playerId.second;
         this.board = this.gameRecord.get(this.movesNum);
         this.scene.allRerender();
         this.turn();
     }
 
     public prev(): void {
-        if (this.players[0] != 'human' && this.players[1] != 'human') { return }
+        if (this.players[1] != 'human' && this.players[2] != 'human') { return }
         if (this.movesNum == 0) { return }
-        const en = this.players[this.movesNum % 2 == 0 ? 1 : 0];
+        const en = this.players[this.current_enemy_turn()];
         if (this.movesNum == 1 && en != 'human') { return }
         console.log('prev');
 
@@ -284,9 +315,9 @@ export class MosaicGame {
     }
 
     public next() {
-        if (this.players[0] != 'human' && this.players[1] != 'human') { return }
+        if (this.players[1] != 'human' && this.players[2] != 'human') { return }
         if (this.movesNum == this.gameRecord.length - 1) { return }
-        const en = this.players[this.movesNum % 2 == 0 ? 1 : 0];
+        const en = this.players[this.current_enemy_turn()];
         if (this.movesNum == this.gameRecord.length - 2 && en != 'human') { return }
         console.log('next');
 
@@ -294,23 +325,23 @@ export class MosaicGame {
     }
 
     public fastBackward(): void {
-        if (this.players[0] != 'human' && this.players[1] != 'human') { return }
+        if (this.players[1] != 'human' && this.players[2] != 'human') { return }
         if (this.movesNum == 0) { return }
-        const en = this.players[this.movesNum % 2 == 0 ? 1 : 0];
+        const en = this.players[this.current_enemy_turn()];
         if (this.movesNum == 1 && en != 'human') { return }
         console.log('cue');
 
-        this.jump(this.players[0] == 'human' ? 0 : 1);
+        this.jump(this.players[1] == 'human' ? 0 : 1);
     }
 
     public fastForward(): void {
-        if (this.players[0] != 'human' && this.players[1] != 'human') { return }
+        if (this.players[1] != 'human' && this.players[2] != 'human') { return }
         if (this.movesNum == this.gameRecord.length - 1) { return }
-        const en = this.players[this.movesNum % 2 == 0 ? 1 : 0];
+        const en = this.players[this.current_enemy_turn()];
         if (this.movesNum == this.gameRecord.length - 2 && en != 'human') { return }
         console.log('fast forward');
 
-        this.jump(this.players[(this.gameRecord.length - 1) % 2 == 0 ? 0 : 1] == 'human' ? this.gameRecord.length - 1 : this.gameRecord.length - 2);
+        this.jump(this.players[(this.gameRecord.length - 1) % 2 == 0 ? 1 : 2] == 'human' ? this.gameRecord.length - 1 : this.gameRecord.length - 2);
     }
 
     public exportData(): string {
