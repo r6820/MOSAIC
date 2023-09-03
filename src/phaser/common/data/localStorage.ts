@@ -22,7 +22,10 @@ export function loadData(mosaicGame: MosaicGame) {
         } else {
             throw new Error('error')
         }
-    }, () => { mosaicGame.scene.allRerender(); });
+    }, () => {
+        mosaicGame.scene.allRerender();
+        mosaicGame.scene.setInteractive(true);
+    });
 }
 
 export function removeData(mosaicGame: MosaicGame) {

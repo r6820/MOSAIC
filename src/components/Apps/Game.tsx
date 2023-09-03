@@ -104,51 +104,61 @@ export const Game = () => {
       }
   }, []);
 
+  const JoinButton = (props: { num: 1 | 2, eNum: 1 | 2 }) => {
+    return (
+      <Button id={`join-as-player${props.num}`} label={`player${props.num}`} onClick={() => {
+        if (userState == props.num) { return }
+        socket.emit('join game', { room_id: state.id, player_num: props.num, user_name: userName });
+        socket.off(`check player${props.eNum}`);
+        socket.on(`check player${props.num}`, () => {
+          socket.emit('rejoin game', { room_id: state.id, player_num: props.num, user_name: userName });
+        });
+        userState = props.num;
+      }} />
+    )
+  }
+
+  const OnlineContainer = () => {
+    return (
+      <div className='online-container'>
+        <div className='player-name flex flex-row'>
+          <div className='text-left flex-1'>{player1Name}</div>
+          <div className='text-right flex-1'>{player2Name}</div>
+        </div>
+        <div className='join-game'>
+          <JoinButton num={1} eNum={2} />
+          <label className='m-2'>{movesNum}</label>
+          <JoinButton num={2} eNum={1} />
+        </div>
+      </div>
+    )
+  }
+
+  const OfflineContainer = () => {
+    return (
+      <div className='offline-container'>
+        <div className='turn-operation'>
+          <Button id='fast-backward-button' label={<FaFastBackward />} onClick={() => mosaicGame.fastBackward()} />
+          <Button id='prev-button' label={<FaStepBackward />} onClick={() => mosaicGame.prev()} />
+          <label className='m-2'>{movesNum}</label>
+          <Button id='next-button' label={<FaStepForward />} onClick={() => mosaicGame.next()} />
+          <Button id='fast-forward-button' label={<FaFastForward />} onClick={() => mosaicGame.fastForward()} />
+        </div>
+        <div className='game-record-operation'>
+          <Button id='save-button' label='save' onClick={() => { saveData(mosaicGame) }} />
+          <Button id='load-button' label='load' onClick={() => { loadData(mosaicGame) }} />
+          <Button id='remove-button' label='remove' onClick={() => { removeData(mosaicGame) }} />
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div>
       <div id="phaser-container"></div>
       {state.id != null
-        ? <div className='online-container'>
-          <div className='player-name flex flex-row'>
-            <div className='text-left flex-1'>{player1Name}</div>
-            <div className='text-right flex-1'>{player2Name}</div>
-          </div>
-          <div className='join-game'>
-            <Button id='join-as-player1' label='player1' onClick={() => {
-              if (userState == 1) { return }
-              socket.emit('join game', { room_id: state.id, player_num: 1, user_name: userName });
-              socket.off('check player2');
-              socket.on('check player1', () => {
-                socket.emit('rejoin game', { room_id: state.id, player_num: 1, user_name: userName });
-              });
-              userState = 1;
-            }} />
-            <label className='m-2'>{movesNum}</label>
-            <Button id='join-as-player2' label='player2' onClick={() => {
-              if (userState == 2) { return }
-              socket.emit('join game', { room_id: state.id, player_num: 2, user_name: userName });
-              socket.off('check player1');
-              socket.on('check player2', () => {
-                socket.emit('rejoin game', { room_id: state.id, player_num: 2, user_name: userName });
-              });
-              userState = 2;
-            }} />
-          </div>
-        </div>
-        : <div className='offline-container'>
-          <div className='turn-operation'>
-            <Button id='fast-backward-button' label={<FaFastBackward />} onClick={() => mosaicGame.fastBackward()} />
-            <Button id='prev-button' label={<FaStepBackward />} onClick={() => mosaicGame.prev()} />
-            <label className='m-2'>{movesNum}</label>
-            <Button id='next-button' label={<FaStepForward />} onClick={() => mosaicGame.next()} />
-            <Button id='fast-forward-button' label={<FaFastForward />} onClick={() => mosaicGame.fastForward()} />
-          </div>
-          <div className='game-record-operation'>
-            <Button id='save-button' label='save' onClick={() => { saveData(mosaicGame) }} />
-            <Button id='load-button' label='load' onClick={() => { loadData(mosaicGame) }} />
-            <Button id='remove-button' label='remove' onClick={() => { removeData(mosaicGame) }} />
-          </div>
-        </div>}
+        ? <OnlineContainer />
+        : <OfflineContainer />}
     </div>
   )
 }
