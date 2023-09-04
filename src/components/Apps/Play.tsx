@@ -12,6 +12,7 @@ export const Play = () => {
     const [level, setLevel] = useState([10, 10]);
     const selectOption = {
         id: 'size', label: 'size', options: [
+            { value: 3, label: '3' },
             { value: 5, label: '5' },
             { value: 7, label: '7' }
         ], defaultValue: { value: 7, label: '7' }
