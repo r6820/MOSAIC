@@ -14,7 +14,7 @@ export const Room = (props: RoomProps) => {
                 2:<div className='flex w-full border rounded'>{props.player2}</div>
             </div>
             <Button id={`ButtonRoom${props.id}`} label='Enter' onClick={() => {
-                navigate('/online/game', { state: {...props} });
+                navigate(`/online/game?id=${props.id}`, { state: {...props} });
             }} />
         </div>
     )

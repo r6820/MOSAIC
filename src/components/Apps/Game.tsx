@@ -84,7 +84,11 @@ export const Game = () => {
       setUserName(_userName.replace(/\s+/g, '') == '' ? 'null' : _userName);
       socket.emit('join', { room_id: state.id, user_name: _userName });
       axios.get(
-        `${API_URL}/game/${state.id}`
+        `${API_URL}/game`, {
+          params:{
+            room_id: state.id
+          }
+        }
       ).then((res) => {
         console.log(res.data);
         const gameRecord = res.data.game.game_record
@@ -93,6 +97,7 @@ export const Game = () => {
         }
       }).catch((reason) => {
         console.log(reason);
+        navigate('/online');
       });
     }
     const destroy = createPhaser(mosaicGame);
