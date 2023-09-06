@@ -1,6 +1,7 @@
-export const ext:string = 'mof'
+export const ext: string = 'mof'
 
-export const defaultSize: number = 7;
+export const sizes: number[] = [3, 4, 5, 7];
+export const defaultSize: number = sizes[3];
 export const offset: { x: number, y: number } = { x: 50, y: 50 };
 
 export const width = 800;

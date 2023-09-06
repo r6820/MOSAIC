@@ -53,10 +53,10 @@ export const Game = () => {
 
         if (userState == 1) {
           if (res.status == 1) {
-            socket.emit('start', { room_id: state.id, game_record: mosaicGame.exportData() });
+            socket.emit('start', { game_id: state.id, game_record: mosaicGame.exportData() });
           } else {
             mosaicGame.boardReset();
-            socket.emit('start', { room_id: state.id, game_record: mosaicGame.exportData() });
+            socket.emit('start', { game_id: state.id, game_record: mosaicGame.exportData() });
           }
         }
       });
@@ -68,7 +68,7 @@ export const Game = () => {
           mosaicGame.userState = userState;
           mosaicGame.scene.move = ({ i, j, k }: Position) => {
             mosaicGame.scene.addTask(() => {
-              socket.emit('move', { room_id: state.id, turn: mosaicGame.current_turn(), position: [i, j, k] })
+              socket.emit('move', { game_id: state.id, turn: mosaicGame.current_turn(), position: [i, j, k] })
             })
           }
           mosaicGame.turn();
@@ -78,15 +78,15 @@ export const Game = () => {
         mosaicGame.move({ i, j, k });
       });
       socket.on('disconnect', () => { navigate('/online') });
-      mosaicGame.setFinish(() => { socket.emit('finish', { room_id: state.id }) });
+      mosaicGame.setFinish(() => { socket.emit('finish', { game_id: state.id }) });
 
       const _userName = localStorage.getItem('username') || '';
       setUserName(_userName.replace(/\s+/g, '') == '' ? 'null' : _userName);
-      socket.emit('join', { room_id: state.id, user_name: _userName });
+      socket.emit('join', { game_id: state.id, user_name: _userName });
       axios.get(
         `${API_URL}/game`, {
           params:{
-            room_id: state.id
+            game_id: state.id
           }
         }
       ).then((res) => {
@@ -113,10 +113,10 @@ export const Game = () => {
     return (
       <Button id={`join-as-player${props.num}`} label={`player${props.num}`} onClick={() => {
         if (userState == props.num) { return }
-        socket.emit('join game', { room_id: state.id, player_num: props.num, user_name: userName });
+        socket.emit('join game', { game_id: state.id, player_num: props.num, user_name: userName });
         socket.off(`check player${props.eNum}`);
         socket.on(`check player${props.num}`, () => {
-          socket.emit('rejoin game', { room_id: state.id, player_num: props.num, user_name: userName });
+          socket.emit('rejoin game', { game_id: state.id, player_num: props.num, user_name: userName });
         });
         userState = props.num;
       }} />

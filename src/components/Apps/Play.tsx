@@ -2,30 +2,23 @@ import { useNavigate } from 'react-router-dom'
 import { Button } from '@/components'
 import Select from "react-select";
 import { useState } from 'react';
-import { PV_EVAL_BASIS, PV_MAX_LEVEL, player } from '@/phaser';
+import { PV_EVAL_BASIS, PV_MAX_LEVEL, defaultSize, player, sizes } from '@/phaser';
 
 
 export const Play = () => {
     const navigate = useNavigate();
-    const [size, setSize] = useState(7);
+    const [size, setSize] = useState(defaultSize);
     const [isAI, setIsAI] = useState([false, false]);
     const [level, setLevel] = useState([10, 10]);
     const selectOption = {
-        id: 'size', label: 'size', options: [
-            { value: 3, label: '3' },
-            { value: 4, label: '4' },
-            { value: 5, label: '5' },
-            { value: 7, label: '7' }
-        ], defaultValue: { value: 7, label: '7' }
+        id: 'size', label: 'size', options: sizes.map((v) => (
+            { value: v, label: `${v}` }
+        ))
+        , defaultValue: { value: defaultSize, label: `${defaultSize}` }
     };
-    const playerOptions = [
-        {
-            id: 'player1', label: 'player1'
-        },
-        {
-            id: 'player2', label: 'player2'
-        }
-    ]
+    const playerOptions = [1, 2].map((v) => (
+        { id: `player${v}`, label: `player${v}` }
+    ))
 
     return (
         <div className='MainMenu flex flex-col'>

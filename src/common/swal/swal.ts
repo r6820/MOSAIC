@@ -24,9 +24,9 @@ function outsideClick() {
     return false
 }
 
-export function inputSwal(confirmButtonText: string, preConfirm: (text: string) => void, Onfulfilled?: () => void) {
+export function inputSwal(title: string,confirmButtonText: string, preConfirm: (text: string) => void, Onfulfilled?: () => void) {
     Swal.fire({
-        title: 'Input Game Record Name',
+        title: title,
         input: 'text',
         inputAttributes: {
             autocapitalize: 'off'
@@ -54,9 +54,9 @@ export function inputSwal(confirmButtonText: string, preConfirm: (text: string) 
     });
 }
 
-export function selectSwal(confirmButtonText: string, keyNames: { [key: string]: string }, preConfirm: (text: string) => void, Onfulfilled: () => void) {
+export function selectSwal(title: string, confirmButtonText: string, keyNames: { [key: string]: string }, preConfirm: (text: string) => void, Onfulfilled?: () => void) {
     Swal.fire({
-        title: 'Select Game Record Name',
+        title: title,
         input: 'select',
         inputOptions: keyNames,
         showCloseButton: true,
@@ -66,7 +66,7 @@ export function selectSwal(confirmButtonText: string, keyNames: { [key: string]:
         preConfirm: preConfirm,
         allowOutsideClick: outsideClick
     }).then((result) => {
-        Onfulfilled();
+        (Onfulfilled||(()=>{}))();
         if (result.isConfirmed) {
             Toast.fire({
                 icon: 'success',
@@ -74,7 +74,7 @@ export function selectSwal(confirmButtonText: string, keyNames: { [key: string]:
             });
         }
     }).catch(() => {
-        Onfulfilled();
+        (Onfulfilled||(()=>{}))();
         Toast.fire({
             icon: 'error',
             title: 'Error'
