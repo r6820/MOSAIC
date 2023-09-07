@@ -45,6 +45,13 @@ export const Game = () => {
     if (state.id != null) {
       socket = io(SOCKET_URL);
 
+      // test
+      socket.on('test', (res) => {
+        console.log('test');
+
+        console.log(res);
+      })
+
       socket.on('joined game', (res: { id: number, player1?: string, player2?: string, size: number, status: number, game_record: string }) => {
         console.log('joined the game');
 
@@ -85,10 +92,10 @@ export const Game = () => {
       socket.emit('join', { game_id: state.id, user_name: _userName });
       axios.get(
         `${API_URL}/game`, {
-          params:{
-            game_id: state.id
-          }
+        params: {
+          game_id: state.id
         }
+      }
       ).then((res) => {
         console.log(res.data);
         const gameRecord = res.data.game.game_record
@@ -164,6 +171,9 @@ export const Game = () => {
       {state.id != null
         ? <OnlineContainer />
         : <OfflineContainer />}
+      <Button id='test' label='test' onClick={() => {
+        socket.emit('test', { game_id: state.id, event: 'test' })
+      }} />
     </div>
   )
 }

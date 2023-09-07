@@ -51,7 +51,7 @@ export const Lobby = () => {
                         API_URL + '/lobby'
                     ).then((res) => {
                         console.log(res.data);
-                        setRooms(res.data.rooms);
+                        setRooms(res.data.games);
                     }).catch((reason) => {
                         console.log(reason);
                     });
