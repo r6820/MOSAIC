@@ -14,4 +14,5 @@ export type RoomProps = {
     player1: string,
     player2: string,
     status: number,
+    is_suspended: boolean
 }

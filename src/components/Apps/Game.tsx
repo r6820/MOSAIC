@@ -12,32 +12,39 @@ import '@/css/App.css';
 import '@/css/swal.css';
 import 'animate.css';
 
+type GameData = {
+  id: number,
+  player1?: string,
+  player2?: string,
+  size: number,
+  status: number,
+  game_record: string
+}
 
-type location = {
+type Location = {
   state: {
     id?: number,
     size: number,
     players?: [player, player],
     player1?: string,
     player2?: string,
-    status?: number,
-    turn?: number
+    status?: number
   }
 }
 
 let socket: Socket;
 let mosaicGame: MosaicGame;
-let userState: 0 | 1 | 2 = 0; // 0: offline or spectator, 1: player1, 2: player2
 
 export const Game = () => {
   const [movesNum, setMovesNum] = useState(0);
   const [userName, setUserName] = useState('');
   const [player1Name, setPlayer1Name] = useState('');
   const [player2Name, setPlayer2Name] = useState('');
-  const { state } = useLocation() as location;
+  const [userState, setUserState] = useState<0|1|2>(0); // 0: offline or spectator, 1: player1, 2: player2
+  const { state } = useLocation() as Location;
   const navigate = useNavigate();
   useEffect(() => {
-    userState = 0;
+    setUserState(0);
     setPlayer1Name(state.player1 || '');
     setPlayer2Name(state.player2 || '');
     mosaicGame = new MosaicGame(state.size || defaultSize, state.players || ['Online', 'Online']);
@@ -45,38 +52,43 @@ export const Game = () => {
     if (state.id != null) {
       socket = io(SOCKET_URL);
 
-      // test
-      socket.on('test', (res) => {
-        console.log('test');
+      socket.on('player disconnected', (res: GameData) => {
+        console.log('disconnected');
 
-        console.log(res);
+        setPlayer1Name(res.player1 || '');
+        setPlayer2Name(res.player2 || '');
       })
 
-      socket.on('joined game', (res: { id: number, player1?: string, player2?: string, size: number, status: number, game_record: string }) => {
+      socket.on('joined', (res: GameData)=>{
+        console.log('joined the room');
+
+        setPlayer1Name(res.player1 || '');
+        setPlayer2Name(res.player2 || '');
+        mosaicGame.scene.addTask(()=>{
+          mosaicGame.importData(res.game_record, -1);
+          mosaicGame.scene.allRerender();
+        }, 1)
+      })
+
+      socket.on('joined game', (res: GameData) => {
         console.log('joined the game');
 
         setPlayer1Name(res.player1 || '');
         setPlayer2Name(res.player2 || '');
 
-        if (userState == 1) {
-          if (res.status == 1) {
-            socket.emit('start', { game_id: state.id, game_record: mosaicGame.exportData() });
-          } else {
-            mosaicGame.boardReset();
-            socket.emit('start', { game_id: state.id, game_record: mosaicGame.exportData() });
-          }
+        if (userState == 1 && res.player1 && res.player2) {
+          socket.emit('start', { game_id: state.id, game_record: mosaicGame.exportData() });
         }
       });
-      socket.on('start', (res: { game_record: string }) => {
+      socket.on('start', () => {
         console.log('start');
-        mosaicGame.importData(res.game_record);
 
         if (userState != 0) {
           mosaicGame.userState = userState;
           mosaicGame.scene.move = ({ i, j, k }: Position) => {
             mosaicGame.scene.addTask(() => {
               socket.emit('move', { game_id: state.id, turn: mosaicGame.current_turn(), position: [i, j, k] })
-            })
+            });
           }
           mosaicGame.turn();
         }
@@ -89,7 +101,7 @@ export const Game = () => {
 
       const _userName = localStorage.getItem('username') || '';
       setUserName(_userName.replace(/\s+/g, '') == '' ? 'null' : _userName);
-      socket.emit('join', { game_id: state.id, user_name: _userName });
+      socket.emit('join', { game_id: state.id });
       axios.get(
         `${API_URL}/game`, {
         params: {
@@ -98,7 +110,7 @@ export const Game = () => {
       }
       ).then((res) => {
         console.log(res.data);
-        const gameRecord = res.data.game.game_record
+        const gameRecord = res.data.game.game_record;
         if (gameRecord) {
           mosaicGame.importData(gameRecord);
         }
@@ -119,13 +131,9 @@ export const Game = () => {
   const JoinButton = (props: { num: 1 | 2, eNum: 1 | 2 }) => {
     return (
       <Button id={`join-as-player${props.num}`} label={`player${props.num}`} onClick={() => {
-        if (userState == props.num) { return }
+        if (userState != 0) { return }
         socket.emit('join game', { game_id: state.id, player_num: props.num, user_name: userName });
-        socket.off(`check player${props.eNum}`);
-        socket.on(`check player${props.num}`, () => {
-          socket.emit('rejoin game', { game_id: state.id, player_num: props.num, user_name: userName });
-        });
-        userState = props.num;
+        setUserState(props.num);
       }} />
     )
   }
@@ -171,9 +179,6 @@ export const Game = () => {
       {state.id != null
         ? <OnlineContainer />
         : <OfflineContainer />}
-      <Button id='test' label='test' onClick={() => {
-        socket.emit('test', { game_id: state.id, event: 'test' })
-      }} />
     </div>
   )
 }

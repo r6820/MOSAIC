@@ -209,7 +209,9 @@ export class MosaicGame {
     public gameRecord: GameRecord;
     private movesNum: number = 0;
     public userState: 0 | 1 | 2 = 0;
-    private setMovesNum: (n: number) => void = (n) => { this.movesNum = n; };
+    private setMovesNum: (n: number) => void = (n) => {
+        this.movesNum = n == -1 ? this.gameRecord.length - 1 : n;
+    };
     private finish: () => void = () => { };
     public board: Board<number>;
     constructor(size: number = defaultSize, [player1, player2]: [player, player] = ['human', 'human']) {
@@ -223,21 +225,21 @@ export class MosaicGame {
         this.scene = new MosaicScene(this);
     }
 
-    public boardReset(){
-        this.setMovesNum(0);
+    public boardReset() {
         this.gameRecord = new GameRecord(this.size);
+        this.setMovesNum(0);
         this.board = this.gameRecord.get(this.movesNum);
         this.scene.allRerender();
     }
 
     public onChangeMovesNum(onChangeFunc: (_n: number) => void) {
         this.setMovesNum = (n) => {
-            this.movesNum = n;
-            onChangeFunc(n);
+            this.movesNum = n == -1 ? this.gameRecord.length - 1 : n;
+            onChangeFunc(this.movesNum);
         };
     }
 
-    public setFinish(fin:()=>void){
+    public setFinish(fin: () => void) {
         this.finish = fin;
     }
 
@@ -346,9 +348,9 @@ export class MosaicGame {
         return compress(this.gameRecord.exportData())
     }
 
-    public importData(data: string) {
-        this.movesNum = 0;
+    public importData(data: string, movesNum: number = 0) {
         this.gameRecord = this.gameRecord.importData(decompress(data));
+        this.setMovesNum(movesNum);
         this.board = this.gameRecord.get(this.movesNum);
     }
 }

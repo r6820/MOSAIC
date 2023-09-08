@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 
 export const Room = (props: RoomProps) => {
     const navigate = useNavigate();
+    if (props.is_suspended) { return }
     return (
         <div className='Room flex flex-col border rounded p-4 m-1'>
             <div>Room {props.id}</div>
