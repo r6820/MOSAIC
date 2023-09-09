@@ -88,17 +88,16 @@ export class Board<T> extends Array<Array<Array<T>>>{
         return this.mapPiece(({ value: v }) => v);
     }
 
-    public merge<U, V>(otherBoard: Board<U>, mergeFunction: (v1: T, v2: U) => V): Board<V> {
+    public op<U, V>(otherBoard: Board<U>, mergeFunction: (v1: T, v2: U) => V): Board<V> {
         return this.mapPiece(({ position: pos, value: v }) => mergeFunction(v, otherBoard.get(pos)))
     }
 
     public legalPieces(): Board<boolean> {
-        const isDone = this.isDone();
         const below = this.countBelow(v => v != 0);
         return this.mapPiece(
             piece => {
                 const { position: a, value: v } = piece
-                return !isDone && v == 0 && (a.i == this.length - 1 || below.get(a) == 4)
+                return v == 0 && (a.i == this.length - 1 || below.get(a) == 4)
             }
         )
     }
@@ -113,21 +112,22 @@ export class Board<T> extends Array<Array<Array<T>>>{
         const positionArray: Position[] = [piece.position];
         let l: Piece<number>[] = [];
         do {
+            l = [];
             const fp = board.countBelow(v => v == playerId.first).mapPiece(p => p.value >= 3)
             const sp = board.countBelow(v => v == playerId.second).mapPiece(p => p.value >= 3)
-            l = fp.merge(sp, (v1, v2) =>
+            fp.op(sp, (v1, v2) =>
                 v1 ? playerId.first :
                     v2 ? playerId.second :
                         0
-            ).merge(board.legalPieces(), (v1, v2) => v2 ? v1 : 0)
+            ).op(board.legalPieces(), (v1, v2) => v2 ? v1 : 0)
                 .where(({ value: v }) => v != 0)
-                .map(p => {
+                .forEach(p => {
                     if (!board.isWin(p.value)) {
                         board.set(p);
+                        l.push(p)
                         positionArray.push(p.position);
                     }
-                    return p
-                });
+                })
         } while (l.length > 0)
         return [board, positionArray]
     }
