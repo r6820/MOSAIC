@@ -40,7 +40,7 @@ export const Game = () => {
   const [userName, setUserName] = useState('');
   const [player1Name, setPlayer1Name] = useState('');
   const [player2Name, setPlayer2Name] = useState('');
-  const [userState, setUserState] = useState<0|1|2>(0); // 0: offline or spectator, 1: player1, 2: player2
+  const [userState, setUserState] = useState<0 | 1 | 2>(0); // 0: offline or spectator, 1: player1, 2: player2
   const { state } = useLocation() as Location;
   const navigate = useNavigate();
   useEffect(() => {
@@ -52,38 +52,32 @@ export const Game = () => {
     if (state.id != null) {
       socket = io(SOCKET_URL);
 
-      socket.on('player disconnected', (res: GameData) => {
+      const disconnected = (res: GameData) => {
         console.log('disconnected');
 
         setPlayer1Name(res.player1 || '');
         setPlayer2Name(res.player2 || '');
-      })
-
-      socket.on('joined', (res: GameData)=>{
+      };
+      const joinedRoom = (res: GameData) => {
         console.log('joined the room');
 
         setPlayer1Name(res.player1 || '');
         setPlayer2Name(res.player2 || '');
-        mosaicGame.scene.addTask(()=>{
+        mosaicGame.scene.addTask(() => {
           mosaicGame.importData(res.game_record, -1);
           mosaicGame.scene.allRerender();
         }, 1)
-      })
-
-      socket.on('joined game', (res: GameData) => {
+      };
+      const joinedGame = (res: GameData) => {
         console.log('joined the game');
 
         setPlayer1Name(res.player1 || '');
         setPlayer2Name(res.player2 || '');
 
-        if (userState == 1 && res.player1 && res.player2) {
-          socket.emit('start', { game_id: state.id, game_record: mosaicGame.exportData() });
-        }
-      });
-      socket.on('start', () => {
-        console.log('start');
-
-        if (userState != 0) {
+        if (userState != 0 && mosaicGame.userState == 0 && res.player1 && res.player2) {
+          if (userState == 1){
+            socket.emit('start', { game_id: state.id, game_record: mosaicGame.exportData() });
+          }
           mosaicGame.userState = userState;
           mosaicGame.scene.move = ({ i, j, k }: Position) => {
             mosaicGame.scene.addTask(() => {
@@ -92,11 +86,18 @@ export const Game = () => {
           }
           mosaicGame.turn();
         }
-      });
-      socket.on('move', ([i, j, k]: [number, number, number]) => {
+      };
+      const move = ([i, j, k]: [number, number, number]) => {
         mosaicGame.move({ i, j, k });
-      });
-      socket.on('disconnect', () => { navigate('/online') });
+      };
+      const disconnect = () => { navigate('/online') };
+
+      socket.on('player disconnected', disconnected);
+      socket.on('joined', joinedRoom);
+      socket.on('joined game', joinedGame);
+      socket.on('move', move);
+      socket.on('disconnect', disconnect);
+      
       mosaicGame.setFinish(() => { socket.emit('finish', { game_id: state.id }) });
 
       const _userName = localStorage.getItem('username') || '';
