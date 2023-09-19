@@ -4,7 +4,7 @@ import { argmax, sum } from '@/common';
 import * as tf from '@tensorflow/tfjs';
 
 export const PV_EVAL_BASIS = 50;
-export const PV_MAX_LEVEL = 10
+export const PV_MAX_LEVEL = 20
 
 class MCTSNode {
     private board: Board<number>;
