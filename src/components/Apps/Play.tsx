@@ -9,7 +9,7 @@ export const Play = () => {
     const navigate = useNavigate();
     const [size, setSize] = useState(defaultSize);
     const [isAI, setIsAI] = useState([false, false]);
-    const [level, setLevel] = useState([10, 10]);
+    const [level, setLevel] = useState([20, 20]);
     const selectOption = {
         id: 'size', label: 'size', options: sizes.map((v) => (
             { value: v, label: `${v}` }

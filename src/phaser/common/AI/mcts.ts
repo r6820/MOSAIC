@@ -1,10 +1,12 @@
-import { Action, Board, playerId } from '@/phaser';
+import { Action, Board, Position, playerId } from '@/phaser';
 import { tensor, Tensor, GraphModel } from '@tensorflow/tfjs';
 import { argmax, sum } from '@/common';
 import * as tf from '@tensorflow/tfjs';
 
 export const PV_EVAL_BASIS = 50;
 export const PV_MAX_LEVEL = 20
+
+const predictMemo: { [size: number]: { [key: string]: [number, number[]] } } = {};
 
 class MCTSNode {
     private board: Board<number>;
@@ -53,19 +55,31 @@ class MCTSNode {
             )
         ))]);
     }
-    
+
     private static predict(model: GraphModel, board: Board<number>): [number, number[]] {
         const size = board.length;
-        return tf.tidy(() => {
-            const boardTensor = MCTSNode.convertToTensor(board);
-            const [t1, t2] = model.predict(boardTensor) as [Tensor, Tensor];
-            const value = (t1.arraySync() as number[][])[0][0];
-            let policies = (t2.arraySync() as number[][])[0];
-            policies = board.legalActions().map(({ i, j, k }) => policies[i * size ** 2 + j * size + k]);
-            const policiesSum = sum(policies);
-            policies = policies.map(v => v / policiesSum);
-            return [value, policies]
-        })
+        const key = JSON.stringify(board);
+        let predictValue;
+        if (!(size in predictMemo)){
+            predictMemo[size] = {};
+        }
+        if (key in predictMemo[size]) {
+            predictValue = predictMemo[size][key]
+        } else {
+            predictValue = tf.tidy(() => {
+                const boardTensor = MCTSNode.convertToTensor(board);
+                const [t1, t2] = model.predict(boardTensor) as [Tensor, Tensor];
+                const value = (t1.arraySync() as number[][])[0][0];
+                let policies = (t2.arraySync() as number[][])[0];
+                policies = board.legalActions().map(({ i, j, k }) => policies[i * size ** 2 + j * size + k]);
+                const policiesSum = sum(policies);
+                policies = policies.map(v => v / policiesSum);
+                const _predictValue: [number, number[]] = [value, policies]
+                return _predictValue
+            });
+            predictMemo[size][key] = predictValue;
+        }
+        return predictValue
     }
 }
 
@@ -73,6 +87,7 @@ export class MCTS {
     private size: number;
     private evalNum: number;
     public action?: Action;
+    private memo: { [key: string]: Position } = {};
     constructor(size: number, evalNum: number) {
         this.size = size;
         this.evalNum = evalNum;
@@ -89,8 +104,15 @@ export class MCTS {
     private pvMCTSAction(model: GraphModel) {
         return async (board: Board<number>) => {
             const startTime = Date.now();
-            const scores = this.pvMCTSScores(model, board);
-            const pos = board.legalActions()[argmax(scores)];
+            const key = JSON.stringify(board);
+            let pos: Position;
+            if (key in this.memo) {
+                pos = this.memo[key];
+            } else {
+                const scores = this.pvMCTSScores(model, board);
+                pos = board.legalActions()[argmax(scores)];
+                this.memo[key] = pos;
+            }
             const endTime = Date.now();
             console.log('predict:', endTime - startTime, 'ms');
             console.log('position', pos);
