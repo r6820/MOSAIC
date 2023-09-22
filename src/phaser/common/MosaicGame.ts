@@ -92,7 +92,7 @@ export class Board<T> extends Array<Array<Array<T>>>{
         return this.mapPiece(({ position: pos, value: v }) => mergeFunction(v, otherBoard.get(pos)))
     }
 
-    public legalPieces(): Board<boolean> {
+    public legalActions(): Board<boolean> {
         const below = this.countBelow(v => v != 0);
         return this.mapPiece(
             piece => {
@@ -102,8 +102,8 @@ export class Board<T> extends Array<Array<Array<T>>>{
         )
     }
 
-    public legalActions(): Position[] {
-        return this.legalPieces().where(({ value }) => value).map(({ position }) => position)
+    public legalActionArray(): Position[] {
+        return this.legalActions().where(({ value }) => value).map(({ position }) => position)
     }
 
     public next(piece: Piece<number>): [Board<number>, Position[]] {
@@ -119,7 +119,7 @@ export class Board<T> extends Array<Array<Array<T>>>{
                 v1 ? playerId.first :
                     v2 ? playerId.second :
                         0
-            ).op(board.legalPieces(), (v1, v2) => v2 ? v1 : 0)
+            ).op(board.legalActions(), (v1, v2) => v2 ? v1 : 0)
                 .where(({ value: v }) => v != 0)
                 .forEach(p => {
                     if (!board.isWin(p.value)) {
@@ -133,7 +133,7 @@ export class Board<T> extends Array<Array<Array<T>>>{
     }
 
     public nextAll(value: number): Board<number>[] {
-        return this.legalPieces().where(({ value }) => value).map(({ position }) => this.next({ position, value })[0])
+        return this.legalActions().where(({ value }) => value).map(({ position }) => this.next({ position, value })[0])
     }
 
     public flip() {

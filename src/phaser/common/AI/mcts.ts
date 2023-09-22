@@ -71,7 +71,7 @@ class MCTSNode {
                 const [t1, t2] = model.predict(boardTensor) as [Tensor, Tensor];
                 const value = (t1.arraySync() as number[][])[0][0];
                 let policies = (t2.arraySync() as number[][])[0];
-                policies = board.legalActions().map(({ i, j, k }) => policies[i * size ** 2 + j * size + k]);
+                policies = board.legalActionArray().map(({ i, j, k }) => policies[i * size ** 2 + j * size + k]);
                 const policiesSum = sum(policies);
                 policies = policies.map(v => v / policiesSum);
                 const _predictValue: [number, number[]] = [value, policies]
@@ -110,7 +110,7 @@ export class MCTS {
                 pos = this.memo[key];
             } else {
                 const scores = this.pvMCTSScores(model, board);
-                pos = board.legalActions()[argmax(scores)];
+                pos = board.legalActionArray()[argmax(scores)];
                 this.memo[key] = pos;
             }
             const endTime = Date.now();

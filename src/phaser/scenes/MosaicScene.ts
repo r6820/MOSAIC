@@ -175,12 +175,12 @@ class Hole {
     }
 
     public render() {
-        const value = this.mosaicScene.board.legalPieces().get(this.pos);
+        const value = this.mosaicScene.board.legalActions().get(this.pos);
         this.hole.setVisible(value);
     }
 
     public setInteractive(value: boolean) {
-        if (value && this.mosaicScene.board.legalPieces().get(this.pos)) {
+        if (value && this.mosaicScene.board.legalActions().get(this.pos)) {
             this.hole.setInteractive();
             this.hole.fillColor = colors.hole;
         } else {
