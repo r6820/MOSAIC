@@ -4,7 +4,7 @@ import { argmax, sum } from '@/common';
 import * as tf from '@tensorflow/tfjs';
 
 export const PV_EVAL_BASIS = 50;
-export const PV_MAX_LEVEL = 20
+export const PV_MAX_LEVEL = 64
 
 const predictMemo: { [size: number]: { [key: string]: [number, number[]] } } = {};
 
