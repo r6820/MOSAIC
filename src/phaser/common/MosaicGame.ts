@@ -179,6 +179,7 @@ export class GameRecord {
     }
 
     public move(movesNum: number, action: Piece<number>): [Board<number>, Position[]] {
+        this.moves.splice(movesNum-1);
         this.moves.push(action);
         this.record.splice(movesNum);
         const [board, positionArray] = this.record[movesNum - 1].next(action);
